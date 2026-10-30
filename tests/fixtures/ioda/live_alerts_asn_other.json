@@ -1,0 +1,358 @@
+{
+ "type": "outages.alerts",
+ "metadata": {},
+ "error": null,
+ "perf": null,
+ "requestParameters": {
+  "from": "1792919700",
+  "until": "1793178900",
+  "datasource": null,
+  "limit": 500,
+  "entityType": "asn",
+  "entityCode": "23922,21859"
+ },
+ "data": [
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1792932843,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 5,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1792933383,
+   "level": "normal",
+   "condition": "normal",
+   "value": 12,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1792959125,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 3,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1792959485,
+   "level": "normal",
+   "condition": "normal",
+   "value": 12,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1792984272,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 6,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1792984932,
+   "level": "normal",
+   "condition": "normal",
+   "value": 12,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793009321,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 6,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793009981,
+   "level": "normal",
+   "condition": "normal",
+   "value": 14,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793034601,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 6,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793034961,
+   "level": "normal",
+   "condition": "normal",
+   "value": 8,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793059857,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 3,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793060157,
+   "level": "normal",
+   "condition": "normal",
+   "value": 10,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793085472,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 3,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793085952,
+   "level": "normal",
+   "condition": "normal",
+   "value": 8,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793110668,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 6,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793111268,
+   "level": "normal",
+   "condition": "normal",
+   "value": 10,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793124420,
+   "level": "critical",
+   "condition": "< 0.25",
+   "value": 4,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "merit-nt",
+   "entity": {
+    "code": "21859",
+    "name": "AS21859 (ZEN-ECN)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.21859",
+     "name": "ZEN-ECN"
+    }
+   },
+   "time": 1793124840,
+   "level": "normal",
+   "condition": "normal",
+   "value": 10,
+   "historyValue": 30,
+   "method": "median"
+  }
+ ]
+}

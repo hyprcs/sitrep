@@ -1,0 +1,352 @@
+[
+ {
+  "NOTICEID": 114538.0,
+  "EFFECTIVEDATE": "2024-02-13T13:16:40",
+  "EXTERNALREFERENCE": "RESERVE NOTICE MT PASA PUBLICATION 13 February 2024",
+  "TYPEID": "RESERVE NOTICE",
+  "REASON": "The MTPASA result published on 13 February 2024 identifies Low Reserve Conditions as annual unserved energy exceeds the Reliability Standard between:\r\n -- February 2025 - February 2026 in New South Wales.\r\n\r\nAEMO declares low reserve conditions in accordance with clause 4.8.4 of the National Electricity Rules for the following region(s) and periods:\r\n-- February 2025 - February 2025\r\n-- August 2025 - February 2026 \r\nin New South Wales when forecast demand exceeds supply under some circumstances.\r\n\r\n\r\nPlease note that MTPASA informs the market of potential reliability issues to allow the market to respond in the first instance, potentially avoiding the need for any AEMO intervention.\r\n \r\nFor further information, please refer to:\r\nhttps://www.aemo.com.au/Electricity/National-Electricity-Market-NEM/Data/Market-Management-System-MMS/Projected-Assessment-of-System-Adequacy\r\n \r\nThis notice supersedes Market Notice 114381 published on 06 February 2024.\r\n \r\nBackground\r\nAs part of a broader process of implementing the reliability standard, AEMO runs the Medium Term Projected Assessment of System Adequacy (MTPASA) process weekly to forecast expected unserved energy levels over a two year period. If the expected annual unserved energy exceeds the maximum level specified by the Reliability Standard, a Low Reserve Condition is identified.\r\n \r\nFor more information about how AEMO implements the reliability standard, please view the Reliability Standard Implementation Guidelines (RSIG) available on AEMO's website at https://www.aemo.com.au/Electricity/National\r\n\r\nForecasting \r\nAEMO"
+ },
+ {
+  "NOTICEID": 114557.0,
+  "EFFECTIVEDATE": "2024-02-13T11:51:19",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Bannaby - Mt Piper 5A6 500kV line and Bannaby - Mt Piper 5A7 500kV line in NSW1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: NSW1\r\n\r\nLines: Bannaby - Mt Piper 5A6 500kV and Bannaby - Mt Piper 5A7 500kV\r\n\r\nDuration: 13/02/2024 11:50 until further notice\r\n\r\nConstraint set(s) invoked:\r\n\t\tN-5A6+5A7_N-2 Constraint set contains the following interconnector(s) on the left hand side:\r\n\t\t\t\tN-Q-MNSP1\r\n\t\t\t\tNSW1-QLD1\r\n\t\t\t\tVIC1-NSW1\r\n\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114558.0,
+  "EFFECTIVEDATE": "2024-02-13T11:50:17",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Bayswater - Mt Piper No.5A3 500kV line and Wollar - Mt Piper No.5A5 500kV line in NSW1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: NSW1\r\n\r\nLines: Bayswater - Mt Piper No.5A3 500kV and Wollar - Mt Piper No.5A5 500kV\r\n\r\nDuration: 13/02/2024 11:50 until further notice\r\n\r\nConstraint set(s) invoked:\r\nNONE\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114559.0,
+  "EFFECTIVEDATE": "2024-02-13T11:59:43",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Palmerston - Hadspen 3 & 4 110kV line and  line in TAS1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: TAS1\r\n\r\nLines: Palmerston - Hadspen 3 & 4 110kV and \r\n\r\nDuration: 13/02/2024 11:59 until further notice\r\n\r\nConstraint set(s) invoked:\r\n\t\tT-HAPM_110_N-2 Constraint set contains the following interconnector(s) on the left hand side:\r\n\t\t\t\tNONE\r\n\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114561.0,
+  "EFFECTIVEDATE": "2024-02-13T12:03:06",
+  "EXTERNALREFERENCE": "Variation to FCAS regulation raise requirements: NEM Mainland - 13/02/2024",
+  "TYPEID": "GENERAL NOTICE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE \r\n\r\nVariation to FCAS regulation raise requirements: NEM Mainland - 13/02/2024\r\n\r\nFCAS Raise regulation requirements have been increased.to manage frequency.\r\n\r\nThe following constraint set has been invoked.\r\n\r\nF-MAIN_RREG_0450 at 1200 hrs.\r\n\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114574.0,
+  "EFFECTIVEDATE": "2024-02-13T12:36:58",
+  "EXTERNALREFERENCE": "[EventId:202402131235_NRM_VIC1_SA1_started] NEGRES CONSTRAINT NRM_VIC1_SA1 started operating from 13 February 2024 12:35",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1235 hrs on 13 February 2024\r\n\r\nACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to SA - 13 February 2024.\r\n\r\nElectricity Market outcomes have resulted in the accumulation of negative settlement residues that have exceeded the allowable negative residue threshold for the VIC to SA directional interconnector.\r\n\r\nThe negative residue constraint set NRM_VIC1_SA1 commenced operating from 1235 hrs on 13 February 2024.\r\n\r\nThis constraint set contains an equation with the following interconnectors on the LHS:\r\nV-S-MNSP1\r\nV-SA\r\n\r\nThe RHS of the constraint equation may be adjusted to manage residues.\r\n\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114577.0,
+  "EFFECTIVEDATE": "2024-02-13T13:22:13",
+  "EXTERNALREFERENCE": "Significant power system event - 13 Feb 2024",
+  "TYPEID": "POWER SYSTEM EVENTS",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nSignificant power system event - 13 Feb 2024\r\n\r\nAt 1308 hrs 13/02/2024 a significant power system event occurred.\r\n\r\nDescription of event - Multiple tripping of generation and transmission lines in the Vic region\r\n\r\nTransmission element(s) tripped - Moorabool Sydenham No1 and No2 500 kV lines tripped\r\n\r\nRegion/s - Vic\r\n\r\nLoad interrupted - in excess of 1000 MW\r\n\r\nGeneration volume tripped - 2300 MW\r\n\r\nUpdates will be provided as additional information becomes available. \r\n\r\nThis Market Notice is issued in accordance with NER clause 4.8.3.\r\n\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114580.0,
+  "EFFECTIVEDATE": "2024-02-13T13:31:25",
+  "EXTERNALREFERENCE": "[EventId:202402131330_NRM_VIC1_SA1_stopped] NEGRES CONSTRAINT NRM_VIC1_SA1 ceased operating from 13 February 2024 13:30",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1330 hrs on 13 February 2024\r\n\r\nCANCELLATION - ACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to SA - 13 February 2024.\r\n\r\nRefer to market notice: 114574\r\n\r\nAEMO has ceased taking action to minimize the further accumulation of negative settlement residues on the VIC to SA directional interconnector.\r\n\r\nThe negative residue constraint NRM_VIC1_SA1 ceased operating at 1330 hrs on 13 February 2024.\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114589.0,
+  "EFFECTIVEDATE": "2024-02-13T13:52:07",
+  "EXTERNALREFERENCE": "PDPASA - Forecast Lack Of Reserve Level 2 (LOR2) in the VIC Region on 13/02/2024",
+  "TYPEID": "RESERVE NOTICE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nAEMO declares a Forecast LOR2 condition under clause 4.8.4(b) of the National Electricity Rules for the VIC region for the following Period:\r\n\r\n[1.] From 1430 hrs 13/02/2024 to 1600 hrs 13/02/2024.\r\nThe forecast capacity reserve requirement is 562 MW.\r\nThe minimum capacity reserve available is 384 MW.\r\n\r\nAEMO is seeking a market response.\r\n\r\nAEMO has not yet estimated the latest time at which it would need to intervene through an AEMO intervention event.\r\n\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114592.0,
+  "EFFECTIVEDATE": "2024-02-13T14:02:44",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Eildon PS - Mt Beauty No.1 220 kV line and Eildon PS - Mt Beauty No.2 220 kV line in VIC1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: VIC1\r\n\r\nLines: Eildon PS - Mt Beauty No.1 220 kV and Eildon PS - Mt Beauty No.2 220 kV\r\n\r\nDuration: 13/02/2024 14:02 until further notice\r\n\r\nConstraint set(s) invoked:\r\nNONE\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114602.0,
+  "EFFECTIVEDATE": "2024-02-13T14:18:20",
+  "EXTERNALREFERENCE": "INTENTION TO COMMENCE RERT CONTRACT NEGOTIATIONS",
+  "TYPEID": "MARKET INTERVENTION",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\nReliability and Emergency Reserve Trader (RERT) Intention to negotiate for additional reserve - VIC1 Region- 13/02/2024\r\n\r\nRefer to AEMO Electricity Market Notice no. 114589.\r\nAEMO intends to commence negotiations with RERT Panel members for the provision of additional reserve by issuing requests for tender for the following period of time;\r\n15:00 to 17:00 hrs 13/02/2024\r\nIf reserve is required, the period of activation or dispatch will be within this period but may not be for the entire period.\r\nAEMO will issue a further advice if reserve is contracted.\r\n\r\n\r\nManager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114603.0,
+  "EFFECTIVEDATE": "2024-02-13T14:19:27",
+  "EXTERNALREFERENCE": "INTENTION TO COMMENCE RERT CONTRACT NEGOTIATIONS",
+  "TYPEID": "MARKET INTERVENTION",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\nReliability and Emergency Reserve Trader (RERT) Intention to negotiate for additional reserve - VIC1 Region- 13/02/2024\r\n\r\nRefer to AEMO Electricity Market Notice no. 114589.\r\nAEMO intends to commence negotiations with RERT Panel members for the provision of additional reserve by issuing requests for tender for the following period of time;\r\n15:00 to 17:00 hrs 13/02/2024\r\nIf reserve is required, the period of activation or dispatch will be within this period but may not be for the entire period.\r\nAEMO will issue a further advice if reserve is contracted.\r\n\r\n\r\nManager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114604.0,
+  "EFFECTIVEDATE": "2024-02-13T14:27:41",
+  "EXTERNALREFERENCE": "Actual Lack Of Reserve Level 3 (LOR3) in the VIC region - 13/02/2024",
+  "TYPEID": "RESERVE NOTICE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nActual Lack Of Reserve Level 3 (LOR3) in the VIC region - 13/02/2024\r\n\r\nCustomer load shedding of non-interruptible load is occurring in the VIC region as a result of a shortfall of available capacity reserves.\r\n\r\nAn Actual LOR3 condition has been declared under clause 4.8.4(b) of the National Electricity Rules for the VIC region from 1420 hrs.\r\nThe Actual LOR3 condition is not forecast in Pre Dispatch.\r\n\r\nThe maximum load to be interrupted is up to 450 MW from 1420 hrs 13/02/2024  \r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114607.0,
+  "EFFECTIVEDATE": "2024-02-13T14:35:06",
+  "EXTERNALREFERENCE": "Load Shedding Direction in the Vic Region",
+  "TYPEID": "LOAD SHED",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nLoad Shedding Direction in the Vic Region\r\n\r\nAEMO has directed load shedding commencing at 1420 hrs 13/02/2024\r\nin the Victoria region to restore power system security.\r\n\r\nThe direction was issued under section 116 of the NEL, and was a clause 4.8.9 instruction under the NER.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114611.0,
+  "EFFECTIVEDATE": "2024-02-13T14:40:10",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Palmerston - Hadspen 3 & 4 110kV line and  line in TAS1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: TAS1\r\n\r\nLines: Palmerston - Hadspen 3 & 4 110kV and \r\n\r\nCancellation time: 13/02/2024 14:39\r\n\r\nConstraint set(s) revoked: \r\n\t\tT-HAPM_110_N-2 Constraint set contains the following interconnector(s) on the left hand side:\r\n\t\t\t\tNONE\r\n\r\n\r\nRefer AEMO Electricity Market Notice 114559\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114615.0,
+  "EFFECTIVEDATE": "2024-02-13T14:51:16",
+  "EXTERNALREFERENCE": "[EventId:202402131450_NRM_VIC1_NSW1_started] NEGRES CONSTRAINT NRM_VIC1_NSW1 started operating from 13 February 2024 14:50",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1450 hrs on 13 February 2024\r\n\r\nACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to NSW - 13 February 2024.\r\n\r\nElectricity Market outcomes have resulted in the accumulation of negative settlement residues that have exceeded the allowable negative residue threshold for the VIC to NSW directional interconnector.\r\n\r\nThe negative residue constraint set NRM_VIC1_NSW1 commenced operating from 1450 hrs on 13 February 2024.\r\n\r\nThis constraint set contains an equation with the following interconnectors on the LHS:\r\nVIC1-NSW1\r\n\r\nThe RHS of the constraint equation may be adjusted to manage residues.\r\n\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114616.0,
+  "EFFECTIVEDATE": "2024-02-13T14:52:18",
+  "EXTERNALREFERENCE": "[EventId:202402131450_NRM_VIC1_SA1_started] NEGRES CONSTRAINT NRM_VIC1_SA1 started operating from 13 February 2024 14:50",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1450 hrs on 13 February 2024\r\n\r\nACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to SA - 13 February 2024.\r\n\r\nElectricity Market outcomes have resulted in the accumulation of negative settlement residues that have exceeded the allowable negative residue threshold for the VIC to SA directional interconnector.\r\n\r\nThe negative residue constraint set NRM_VIC1_SA1 commenced operating from 1450 hrs on 13 February 2024.\r\n\r\nThis constraint set contains an equation with the following interconnectors on the LHS:\r\nV-S-MNSP1\r\nV-SA\r\n\r\nThe RHS of the constraint equation may be adjusted to manage residues.\r\n\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114625.0,
+  "EFFECTIVEDATE": "2024-02-13T15:06:04",
+  "EXTERNALREFERENCE": "Significant power system event - Victoria region - 13/02/2024",
+  "TYPEID": "POWER SYSTEM EVENTS",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nAt 1308 hrs 13/02/2024 the Moorabool Sydenham No1 and No2 500 kV lines tripped.\r\nThere have been reports of towers on the ground.\r\n\r\nIn the Victorian region \r\n1000 MW of customer load lost during the fault has been restored\r\n2690 Generation tripped\r\n\r\nThe AEMO instructed loadshed of 300 MW is being progressively restored.\r\n\r\nUpdates will be provided as additional information becomes available. \r\n\r\nThis Market Notice is issued in accordance with NER clause 4.8.3.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114627.0,
+  "EFFECTIVEDATE": "2024-02-13T15:08:04",
+  "EXTERNALREFERENCE": "Load Restoration Direction in the Vic Region",
+  "TYPEID": "LOAD RESTORE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nLoad Restoration Direction in the Vic Region\r\n\r\nAEMO has directed load restoration commencing at 1450 hrs 13/02/2024 in the Victoria region\r\n\r\nThe direction was issued under section 116 of the NEL, and was a clause 4.8.9 instruction under the NER.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114629.0,
+  "EFFECTIVEDATE": "2024-02-13T15:13:39",
+  "EXTERNALREFERENCE": "Load Restoration Direction Cancellation in the Vic Region",
+  "TYPEID": "LOAD RESTORE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation - Load Restoration Direction in the Vic Region - 13/02/2024\r\n\r\nRefer to AEMO Electricity Market Notice ID 114607\r\nLoad restoration as directed is complete. Direction cancelled from 1510 hrs 13/02/2024.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114630.0,
+  "EFFECTIVEDATE": "2024-02-13T15:12:39",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Collinsville - Stoney Creek 7306 132KV LINE line and Collinsville - Newlands 7121 132KV LINE line in QLD1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: QLD1\r\n\r\nLines: Collinsville - Stoney Creek 7306 132KV LINE and Collinsville - Newlands 7121 132KV LINE\r\n\r\nDuration: 13/02/2024 15:12 until further notice\r\n\r\nConstraint set(s) invoked:\r\nNONE\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114632.0,
+  "EFFECTIVEDATE": "2024-02-13T15:19:41",
+  "EXTERNALREFERENCE": "Cancellation of Actual (LOR3) condition in the VIC region - 13/02/2024",
+  "TYPEID": "RESERVE NOTICE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n \r\nCancellation of Actual (LOR3) condition in the VIC region - 13/02/2024\r\n\r\nThe Actual LOR3 Condition in the VIC region advised in AEMO Electricity Market Notice No.114604 is cancelled at 1515 hrs 13/02/2024.\r\n \r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114640.0,
+  "EFFECTIVEDATE": "2024-02-13T15:26:42",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Palmerston - Hadspen 3 & 4 110kV line and  line in TAS1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: TAS1\r\n\r\nLines: Palmerston - Hadspen 3 & 4 110kV and \r\n\r\nDuration: 13/02/2024 15:21 until further notice\r\n\r\nConstraint set(s) invoked:\r\n\t\tT-HAPM_110_N-2 Constraint set contains the following interconnector(s) on the left hand side:\r\n\t\t\t\tNONE\r\n\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114641.0,
+  "EFFECTIVEDATE": "2024-02-13T15:27:46",
+  "EXTERNALREFERENCE": "Reclassification of non-credible contingency event due to existence of widespread abnormal conditions - VIC region(s).",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nAEMO has identified that a non-credible contingency event impacting the power system is more likely to occur and is considered reasonably possible because of the existence of widespread abnormal conditions namely severe weather in the VIC region.\r\n\r\nAEMO has therefore reclassified the occurrence of a non-credible contingency event involving multiple plant due to these abnormal conditions as credible. \r\n\r\nNeed for further measures is being monitored and further measures may be implemented in line with the Power System Security Guidelines (SO_OP_3715). \r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114642.0,
+  "EFFECTIVEDATE": "2024-02-13T16:14:12",
+  "EXTERNALREFERENCE": "Non-credible contingency event - TAS region - 13/02/2024",
+  "TYPEID": "POWER SYSTEM EVENTS",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nNon-credible contingency event - TAS region - 13/02/2024\r\n\r\nAt 1602 hrs the Norwood -Scottsdale 110kV line and the Norwood - Scottsdale -Derby 110kV line tripped.\r\n\r\nAEMO did not instruct load shedding.\r\n\r\nAEMO has been advised 8MW of electrical load and 24MW of generation has been disconnected.\r\n\r\nThe cause of this non credible contingency event is not known at this stage.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114643.0,
+  "EFFECTIVEDATE": "2024-02-13T16:13:14",
+  "EXTERNALREFERENCE": "Significant power system event - Victoria Region - Hazelwood transformers -13/02/2024",
+  "TYPEID": "POWER SYSTEM EVENTS",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nAt 1543 hrs 13/02/2024 At Hazelwood terminal station in the Victoria region the following plant tripped.\r\n\r\nThe No1 500 kV / 220 kV transformer\r\nThe No2 500 kV / 220 kV transformer\r\nThe No3 500 kV / 220 kV transformer\r\nThe No4 500 kV / 220 kV transformer\r\nThe Jeeralang Hazelwood No2 220kV line.\r\n\r\nRefer Market notice 114641\r\n\r\nUpdates will be provided as additional information becomes available. \r\n\r\nThis Market Notice is issued in accordance with NER clause 4.8.3.\r\n\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114644.0,
+  "EFFECTIVEDATE": "2024-02-13T16:15:16",
+  "EXTERNALREFERENCE": "Cancellation of Actual (LOR2) condition in the VIC region - 13/02/2024",
+  "TYPEID": "RESERVE NOTICE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n \r\nCancellation of Actual (LOR2) condition in the VIC region - 13/02/2024\r\n\r\nThe Actual LOR2 Condition in the VIC Region advised in AEMO Electricity Market Notice No.114589 is cancelled at 1614 hrs 13/02/2024.\r\n \r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114645.0,
+  "EFFECTIVEDATE": "2024-02-13T16:31:23",
+  "EXTERNALREFERENCE": "[EventId:202402131630_NRM_VIC1_NSW1_stopped] NEGRES CONSTRAINT NRM_VIC1_NSW1 ceased operating from 13 February 2024 16:30",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1630 hrs on 13 February 2024\r\n\r\nCANCELLATION - ACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to NSW - 13 February 2024.\r\n\r\nRefer to market notice: 114615\r\n\r\nAEMO has ceased taking action to minimize the further accumulation of negative settlement residues on the VIC to NSW directional interconnector.\r\n\r\nThe negative residue constraint NRM_VIC1_NSW1 ceased operating at 1630 hrs on 13 February 2024.\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114646.0,
+  "EFFECTIVEDATE": "2024-02-13T16:30:20",
+  "EXTERNALREFERENCE": "[EventId:202402131630_NRM_VIC1_SA1_stopped] NEGRES CONSTRAINT NRM_VIC1_SA1 ceased operating from 13 February 2024 16:30",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1630 hrs on 13 February 2024\r\n\r\nCANCELLATION - ACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to SA - 13 February 2024.\r\n\r\nRefer to market notice: 114616\r\n\r\nAEMO has ceased taking action to minimize the further accumulation of negative settlement residues on the VIC to SA directional interconnector.\r\n\r\nThe negative residue constraint NRM_VIC1_SA1 ceased operating at 1630 hrs on 13 February 2024.\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114647.0,
+  "EFFECTIVEDATE": "2024-02-13T16:33:56",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Norwood -Scottsdale 110kV line and the Norwood - Scottsdale -Derby 110kV line in TAS due to Non-Credible Event",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Non-Credible Event. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: TAS\r\n\r\nLines: Norwood -Scottsdale 110kV line and the Norwood - Scottsdale -Derby 110kV line\r\n\r\nDuration: 13/02/2024 16:30 until further notice\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114648.0,
+  "EFFECTIVEDATE": "2024-02-13T17:21:13",
+  "EXTERNALREFERENCE": "Possible intervention to manage power system security in VIC region",
+  "TYPEID": "MARKET INTERVENTION",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nPossible intervention to manage power system security in VIC region\r\n\r\nThe synchronous generating units currently expected to be synchronised in  VIC from 1830 hrs 13/02/2024 will be inadequate to maintain a secure operating state in  VIC . \r\n\r\nAEMO estimates that, in the absence of sufficient market response by 1730 hrs 13/02/2024, AEMO may need to intervene by issuing a direction requiring one or more VIC synchronous generating unit(s) to operate or remain synchronised to maintain power system security in VIC.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114649.0,
+  "EFFECTIVEDATE": "2024-02-13T17:15:03",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Collinsville - Stoney Creek 7306 132KV LINE line and Collinsville - Newlands 7121 132KV LINE line in QLD1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: QLD1\r\n\r\nLines: Collinsville - Stoney Creek 7306 132KV LINE and Collinsville - Newlands 7121 132KV LINE\r\n\r\nCancellation time: 13/02/2024 17:14\r\n\r\nConstraint set(s) revoked: \r\nNONE\r\n\r\nRefer AEMO Electricity Market Notice 114630\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114656.0,
+  "EFFECTIVEDATE": "2024-02-13T17:38:24",
+  "EXTERNALREFERENCE": "Direction - VIC region 13/02/2024",
+  "TYPEID": "MARKET INTERVENTION",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nDirection - VIC region 13/02/2024\r\n\r\nIn accordance with section 116 of the National Electricity Law, AEMO has issued a direction to a participant in the VIC region. For the purposes of the National Electricity Rules this is a direction under clause 4.8.9(a). \r\n\r\nThe direction was necessary to maintain the power system in a secure operating state.\r\n\r\nAEMO may issue or revoke additional directions in order to meet the current requirement, unless sufficient market response is provided. A further market notice will be issued when all directions related to this requirement have been cancelled. \r\n\r\nThe issue of the direction commences an AEMO intervention event. AEMO declares all trading intervals during the event to be intervention trading intervals, commencing from the interval ending 1735 hrs on 13/02/2024. \r\n\r\nIntervention pricing does not apply to this AEMO intervention event.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114658.0,
+  "EFFECTIVEDATE": "2024-02-13T17:31:26",
+  "EXTERNALREFERENCE": "Update - Direction - SA Region - 12/02/2024",
+  "TYPEID": "MARKET INTERVENTION",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nUpdate - Direction - SA Region - 12/02/2024\r\n\r\nRefer Market Notice 114536\r\n\r\nThe AEMO intervention event that commenced from interval ending 1705 hrs on 12/02/2024 is continuing.\r\n\r\nAEMO may issue or revoke additional directions in order to meet the current requirement, unless sufficient market response is provided. A further market notice will be issued when all directions related to this requirement have been cancelled. \r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114659.0,
+  "EFFECTIVEDATE": "2024-02-13T17:32:21",
+  "EXTERNALREFERENCE": "[EventId:202402131730_NRM_VIC1_SA1_started] NEGRES CONSTRAINT NRM_VIC1_SA1 started operating from 13 February 2024 17:30",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1730 hrs on 13 February 2024\r\n\r\nACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to SA - 13 February 2024.\r\n\r\nElectricity Market outcomes have resulted in the accumulation of negative settlement residues that have exceeded the allowable negative residue threshold for the VIC to SA directional interconnector.\r\n\r\nThe negative residue constraint set NRM_VIC1_SA1 commenced operating from 1730 hrs on 13 February 2024.\r\n\r\nThis constraint set contains an equation with the following interconnectors on the LHS:\r\nV-S-MNSP1\r\nV-SA\r\n\r\nThe RHS of the constraint equation may be adjusted to manage residues.\r\n\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114670.0,
+  "EFFECTIVEDATE": "2024-02-13T17:54:57",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Bayswater - Mt Piper No.5A3 500kV line and Wollar - Mt Piper No.5A5 500kV line in NSW1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: NSW1\r\n\r\nLines: Bayswater - Mt Piper No.5A3 500kV and Wollar - Mt Piper No.5A5 500kV\r\n\r\nCancellation time: 13/02/2024 17:54\r\n\r\nConstraint set(s) revoked: \r\nNONE\r\n\r\nRefer AEMO Electricity Market Notice 114558\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114672.0,
+  "EFFECTIVEDATE": "2024-02-13T18:25:00",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Palmerston - Hadspen 3 & 4 110kV line and  line in TAS1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: TAS1\r\n\r\nLines: Palmerston - Hadspen 3 & 4 110kV and \r\n\r\nCancellation time: 13/02/2024 18:24\r\n\r\nConstraint set(s) revoked: \r\n\t\tT-HAPM_110_N-2 Constraint set contains the following interconnector(s) on the left hand side:\r\n\t\t\t\tNONE\r\n\r\n\r\nRefer AEMO Electricity Market Notice 114640\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114673.0,
+  "EFFECTIVEDATE": "2024-02-13T18:35:32",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Chalumbin - Turkinje No.7165 132 kV line and Chalumbin - Turkinje No.7166 132 kV line in QLD1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: QLD1\r\n\r\nLines: Chalumbin - Turkinje No.7165 132 kV and Chalumbin - Turkinje No.7166 132 kV\r\n\r\nDuration: 13/02/2024 18:35 until further notice\r\n\r\nConstraint set(s) invoked:\r\nNONE\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114674.0,
+  "EFFECTIVEDATE": "2024-02-13T18:36:30",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Tumoulin - Woree No.877 275 kV line and Chalumbin - Turkinje No.7166 132 kV line in QLD1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: QLD1\r\n\r\nLines: Tumoulin - Woree No.877 275 kV and Chalumbin - Turkinje No.7166 132 kV\r\n\r\nDuration: 13/02/2024 18:35 until further notice\r\n\r\nConstraint set(s) invoked:\r\nNONE\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114675.0,
+  "EFFECTIVEDATE": "2024-02-13T19:00:18",
+  "EXTERNALREFERENCE": "[EventId:202402131900_NRM_VIC1_SA1_stopped] NEGRES CONSTRAINT NRM_VIC1_SA1 ceased operating from 13 February 2024 19:00",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 1900 hrs on 13 February 2024\r\n\r\nCANCELLATION - ACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to SA - 13 February 2024.\r\n\r\nRefer to market notice: 114659\r\n\r\nAEMO has ceased taking action to minimize the further accumulation of negative settlement residues on the VIC to SA directional interconnector.\r\n\r\nThe negative residue constraint NRM_VIC1_SA1 ceased operating at 1900 hrs on 13 February 2024.\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114676.0,
+  "EFFECTIVEDATE": "2024-02-13T19:10:58",
+  "EXTERNALREFERENCE": "Reclassification of a Non-Credible Contingency Event: Bayswater - Mt Piper No.5A3 500kV line and Wollar - Mt Piper No.5A5 500kV line in NSW1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nReclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.\r\n\r\nRegion: NSW1\r\n\r\nLines: Bayswater - Mt Piper No.5A3 500kV and Wollar - Mt Piper No.5A5 500kV\r\n\r\nDuration: 13/02/2024 19:10 until further notice\r\n\r\nConstraint set(s) invoked:\r\nNONE\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114677.0,
+  "EFFECTIVEDATE": "2024-02-13T19:40:01",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Tumoulin - Woree No.877 275 kV line and Chalumbin - Turkinje No.7166 132 kV line in QLD1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: QLD1\r\n\r\nLines: Tumoulin - Woree No.877 275 kV and Chalumbin - Turkinje No.7166 132 kV\r\n\r\nCancellation time: 13/02/2024 19:39\r\n\r\nConstraint set(s) revoked: \r\nNONE\r\n\r\nRefer AEMO Electricity Market Notice 114674\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114678.0,
+  "EFFECTIVEDATE": "2024-02-13T19:41:00",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Chalumbin - Turkinje No.7165 132 kV line and Chalumbin - Turkinje No.7166 132 kV line in QLD1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: QLD1\r\n\r\nLines: Chalumbin - Turkinje No.7165 132 kV and Chalumbin - Turkinje No.7166 132 kV\r\n\r\nCancellation time: 13/02/2024 19:39\r\n\r\nConstraint set(s) revoked: \r\nNONE\r\n\r\nRefer AEMO Electricity Market Notice 114673\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114679.0,
+  "EFFECTIVEDATE": "2024-02-13T20:05:21",
+  "EXTERNALREFERENCE": "[EventId:202402132005_NRM_VIC1_NSW1_started] NEGRES CONSTRAINT NRM_VIC1_NSW1 started operating from 13 February 2024 20:05",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 2005 hrs on 13 February 2024\r\n\r\nACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to NSW - 13 February 2024.\r\n\r\nElectricity Market outcomes have resulted in the accumulation of negative settlement residues that have exceeded the allowable negative residue threshold for the VIC to NSW directional interconnector.\r\n\r\nThe negative residue constraint set NRM_VIC1_NSW1 commenced operating from 2005 hrs on 13 February 2024.\r\n\r\nThis constraint set contains an equation with the following interconnectors on the LHS:\r\nVIC1-NSW1\r\n\r\nThe RHS of the constraint equation may be adjusted to manage residues.\r\n\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114680.0,
+  "EFFECTIVEDATE": "2024-02-13T20:15:04",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Bayswater - Mt Piper No.5A3 500kV line and Wollar - Mt Piper No.5A5 500kV line in NSW1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: NSW1\r\n\r\nLines: Bayswater - Mt Piper No.5A3 500kV and Wollar - Mt Piper No.5A5 500kV\r\n\r\nCancellation time: 13/02/2024 20:14\r\n\r\nConstraint set(s) revoked: \r\nNONE\r\n\r\nRefer AEMO Electricity Market Notice 114676\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114681.0,
+  "EFFECTIVEDATE": "2024-02-13T20:55:00",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Bannaby - Mt Piper 5A6 500kV line and Bannaby - Mt Piper 5A7 500kV line in NSW1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: NSW1\r\n\r\nLines: Bannaby - Mt Piper 5A6 500kV and Bannaby - Mt Piper 5A7 500kV\r\n\r\nCancellation time: 13/02/2024 20:54\r\n\r\nConstraint set(s) revoked: \r\n\t\tN-5A6+5A7_N-2 Constraint set contains the following interconnector(s) on the left hand side:\r\n\t\t\t\tN-Q-MNSP1\r\n\t\t\t\tNSW1-QLD1\r\n\t\t\t\tVIC1-NSW1\r\n\r\n\r\nRefer AEMO Electricity Market Notice 114557\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114682.0,
+  "EFFECTIVEDATE": "2024-02-13T21:00:24",
+  "EXTERNALREFERENCE": "[EventId:202402132100_NRM_VIC1_NSW1_stopped] NEGRES CONSTRAINT NRM_VIC1_NSW1 ceased operating from 13 February 2024 21:00",
+  "TYPEID": "SETTLEMENTS RESIDUE",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nIssued by Australian Energy Market Operator Ltd at 2100 hrs on 13 February 2024\r\n\r\nCANCELLATION - ACTUAL NEGATIVE SETTLEMENT RESIDUES - VIC to NSW - 13 February 2024.\r\n\r\nRefer to market notice: 114679\r\n\r\nAEMO has ceased taking action to minimize the further accumulation of negative settlement residues on the VIC to NSW directional interconnector.\r\n\r\nThe negative residue constraint NRM_VIC1_NSW1 ceased operating at 2100 hrs on 13 February 2024.\r\n\r\nThis is an AEMO autogenerated Market Notice."
+ },
+ {
+  "NOTICEID": 114683.0,
+  "EFFECTIVEDATE": "2024-02-13T21:05:04",
+  "EXTERNALREFERENCE": "Cancellation of a Non-Credible Contingency Event: Eildon PS - Mt Beauty No.1 220 kV line and Eildon PS - Mt Beauty No.2 220 kV line in VIC1 due to Lightning.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE\r\n\r\nCancellation of reclassification of a Non-Credible Contingency Event as a Credible Contingency Event due to Lightning. AEMO considers the simultaneous trip of the following circuits is no longer reasonably possible. There is no longer any lightning activity in the vicinity of the following lines. Accordingly its classification has reverted to a non-credible contingency event.\r\n\r\nRegion: VIC1\r\n\r\nLines: Eildon PS - Mt Beauty No.1 220 kV and Eildon PS - Mt Beauty No.2 220 kV\r\n\r\nCancellation time: 13/02/2024 21:04\r\n\r\nConstraint set(s) revoked: \r\nNONE\r\n\r\nRefer AEMO Electricity Market Notice 114592\r\n\r\nAuto-generated on behalf of Manager NEM Real Time Operations\r"
+ },
+ {
+  "NOTICEID": 114684.0,
+  "EFFECTIVEDATE": "2024-02-13T22:41:03",
+  "EXTERNALREFERENCE": "Cancellation: Reclassification of non-credible contingency event due to existence of widespread abnormal condition/s - VIC region.",
+  "TYPEID": "RECLASSIFY CONTINGENCY",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nAEMO considers the occurrence of a non-credible contingency event due to the widespread abnormal conditions advised in AEMO Electricity Market Notice 114641 is no longer reasonably possible and accordingly its classification has reverted to non-credible. \r\n\r\nCancellation time: 2240 hrs 13/02/2024.\r\n\r\nManager NEM Real Time Operations"
+ },
+ {
+  "NOTICEID": 114685.0,
+  "EFFECTIVEDATE": "2024-02-13T22:37:34",
+  "EXTERNALREFERENCE": "Update: Significant power system event - Victoria Region - Hazelwood transformers -13/02/2024",
+  "TYPEID": "POWER SYSTEM EVENTS",
+  "REASON": "AEMO ELECTRICITY MARKET NOTICE.\r\n\r\nAt 1827 hrs 13/02/2024 At Hazelwood terminal station in the Victoria region, the following plant was returned to service.\r\n\r\nThe No1 500 kV / 220 kV transformer\r\nThe No2 500 kV / 220 kV transformer\r\nThe No3 500 kV / 220 kV transformer\r\nThe No4 500 kV / 220 kV transformer\r\n\r\nThe Jeeralang - Hazelwood No 2 220kV line remains out of service.\r\n\r\nRefer to Network outage scheduler (NOS) for further details. \r\n\r\nRefer Market notice 114641 and 114643\r\n\r\nThis Market Notice is issued in accordance with NER clause 4.8.3.\r\n\r\n\r\nManager NEM Real Time Operations"
+ }
+]

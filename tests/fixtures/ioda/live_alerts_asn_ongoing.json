@@ -1,0 +1,35 @@
+{
+ "type": "outages.alerts",
+ "metadata": {},
+ "error": null,
+ "perf": null,
+ "requestParameters": {
+  "from": "1791969300",
+  "until": "1793178900",
+  "datasource": null,
+  "limit": 500,
+  "entityType": "asn",
+  "entityCode": "23922"
+ },
+ "data": [
+  {
+   "datasource": "bgp",
+   "entity": {
+    "code": "23922",
+    "name": "AS23922 (BHI-AU)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.23922",
+     "name": "BHI-AU"
+    }
+   },
+   "time": 1792522800,
+   "level": "critical",
+   "condition": "< 0.99",
+   "value": 28,
+   "historyValue": 100,
+   "method": "median"
+  }
+ ]
+}

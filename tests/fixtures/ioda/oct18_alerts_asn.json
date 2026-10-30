@@ -1,0 +1,301 @@
+{
+ "type": "outages.alerts",
+ "metadata": {},
+ "error": null,
+ "perf": null,
+ "requestParameters": {
+  "from": "1791154800",
+  "until": "1792364400",
+  "datasource": null,
+  "limit": 500,
+  "entityType": "asn",
+  "entityCode": "1221,4804,7474,7545,133612,4802,4826,4764"
+ },
+ "data": [
+  {
+   "datasource": "bgp",
+   "entity": {
+    "code": "4802",
+    "name": "AS4802 (ASN-IINET)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4802",
+     "name": "ASN-IINET"
+    }
+   },
+   "time": 1791474600,
+   "level": "normal",
+   "condition": "normal",
+   "value": 30,
+   "historyValue": 30,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4804",
+    "name": "AS4804 (MPX-AS)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4804",
+     "name": "MPX-AS"
+    }
+   },
+   "time": 1792102800,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 6,
+   "historyValue": 100,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4804",
+    "name": "AS4804 (MPX-AS)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4804",
+     "name": "MPX-AS"
+    }
+   },
+   "time": 1792105800,
+   "level": "normal",
+   "condition": "normal",
+   "value": 90,
+   "historyValue": 100,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4804",
+    "name": "AS4804 (MPX-AS)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4804",
+     "name": "MPX-AS"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 14,
+   "historyValue": 100,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7474",
+    "name": "AS7474 (OPTUSCOM-AS01-AU)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7474",
+     "name": "OPTUSCOM-AS01-AU"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 115,
+   "historyValue": 500,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "1221",
+    "name": "AS1221 (ASN-TELSTRA)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.1221",
+     "name": "ASN-TELSTRA"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 360,
+   "historyValue": 2000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 1980,
+   "historyValue": 9000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4826",
+    "name": "AS4826 (VOCUS-BACKBONE-AS)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4826",
+     "name": "VOCUS-BACKBONE-AS"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 80,
+   "historyValue": 400,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4764",
+    "name": "AS4764 (WIDEBAND-AS-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4764",
+     "name": "WIDEBAND-AS-AP"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 120,
+   "historyValue": 700,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4804",
+    "name": "AS4804 (MPX-AS)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4804",
+     "name": "MPX-AS"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 95,
+   "historyValue": 100,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7474",
+    "name": "AS7474 (OPTUSCOM-AS01-AU)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7474",
+     "name": "OPTUSCOM-AS01-AU"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 495,
+   "historyValue": 500,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "1221",
+    "name": "AS1221 (ASN-TELSTRA)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.1221",
+     "name": "ASN-TELSTRA"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 1995,
+   "historyValue": 2000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 8995,
+   "historyValue": 9000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4826",
+    "name": "AS4826 (VOCUS-BACKBONE-AS)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4826",
+     "name": "VOCUS-BACKBONE-AS"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 395,
+   "historyValue": 400,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "4764",
+    "name": "AS4764 (WIDEBAND-AS-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.4764",
+     "name": "WIDEBAND-AS-AP"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 695,
+   "historyValue": 700,
+   "method": "median"
+  }
+ ]
+}

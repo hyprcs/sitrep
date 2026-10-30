@@ -1,0 +1,10 @@
+# What sitrep needs to run (installed into the Docker image). Versions are pinned.
+fastapi==0.162.0
+pydantic==2.14.1
+uvicorn==0.54.0
+httpx==0.28.1
+dnspython==2.9.0
+PyYAML==6.0.3
+defusedxml==0.7.1
+websockets==17.2
+certifi==2026.10.23

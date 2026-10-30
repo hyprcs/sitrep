@@ -1,0 +1,88 @@
+{
+ "type": "outages.alerts",
+ "metadata": {},
+ "error": null,
+ "perf": null,
+ "requestParameters": {
+  "from": "1791969300",
+  "until": "1793178900",
+  "datasource": null,
+  "limit": 500,
+  "entityType": "country",
+  "entityCode": "AU"
+ },
+ "data": [
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "AU",
+    "name": "Australia",
+    "subnames": [],
+    "type": "country",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU"
+    }
+   },
+   "time": 1792102800,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 2100,
+   "historyValue": 30000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "AU",
+    "name": "Australia",
+    "subnames": [],
+    "type": "country",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU"
+    }
+   },
+   "time": 1792104600,
+   "level": "normal",
+   "condition": "normal",
+   "value": 27500,
+   "historyValue": 30000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "AU",
+    "name": "Australia",
+    "subnames": [],
+    "type": "country",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 6300,
+   "historyValue": 30000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "AU",
+    "name": "Australia",
+    "subnames": [],
+    "type": "country",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 29700,
+   "historyValue": 30000,
+   "method": "median"
+  }
+ ]
+}

@@ -1,0 +1,43 @@
+{
+ "createdAt": 1793251800,
+ "data": {
+  "Internet": {
+   "36": {
+    "title": "NBN",
+    "now": true,
+    "last24": true,
+    "future": true
+   },
+   "37": {
+    "title": "FTTB",
+    "now": false,
+    "last24": true,
+    "future": true
+   }
+  },
+  "Mobile": {
+   "35": {
+    "title": "Mobile",
+    "now": false,
+    "last24": false,
+    "future": false
+   }
+  },
+  "Phone": {
+   "34": {
+    "title": "Home Phone",
+    "now": false,
+    "last24": true,
+    "future": true
+   }
+  },
+  "Others": {
+   "40": {
+    "title": "Web Hosting",
+    "now": false,
+    "last24": false,
+    "future": false
+   }
+  }
+ }
+}

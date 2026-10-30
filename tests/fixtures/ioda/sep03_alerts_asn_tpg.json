@@ -1,0 +1,206 @@
+{
+ "type": "outages.alerts",
+ "metadata": {},
+ "error": null,
+ "perf": null,
+ "requestParameters": {
+  "from": "1788343200",
+  "until": "1788444000",
+  "datasource": null,
+  "limit": 500,
+  "entityType": "asn",
+  "entityCode": "7545"
+ },
+ "data": [
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788356400,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 7000,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788367200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 8000,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788367800,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 6200,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788372600,
+   "level": "normal",
+   "condition": "normal",
+   "value": 7900,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788373200,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 6100,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788390000,
+   "level": "normal",
+   "condition": "normal",
+   "value": 8600,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788397800,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 5800,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788414600,
+   "level": "normal",
+   "condition": "normal",
+   "value": 8000,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788423000,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 7600,
+   "historyValue": 10000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "7545",
+    "name": "AS7545 (TPG-INTERNET-AP)",
+    "subnames": [],
+    "type": "asn",
+    "attrs": {
+     "fqid": "asn.7545",
+     "name": "TPG-INTERNET-AP"
+    }
+   },
+   "time": 1788426600,
+   "level": "normal",
+   "condition": "normal",
+   "value": 8300,
+   "historyValue": 10000,
+   "method": "median"
+  }
+ ]
+}

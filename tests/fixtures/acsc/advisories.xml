@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0" xml:base="https://www.cyber.gov.au/">
+  <channel>
+    <title>ASD's ACSC - Advisories RSS</title>
+    <link>https://www.cyber.gov.au/</link>
+    <description/>
+    <language>en</language>
+    
+    <item>
+  <title>Chinese government-linked cyber threat actors combine automated and hands-on hacking tools to steal sensitive data</title>
+  <link>https://www.cyber.gov.au/advisory/chinese-government-linked-cyber-threat-actors-combine-automated-and-hands-on-hacking-tools-to-steal-sensitive-data</link>
+  <description>Learn how Chinese state-linked cyber actors steal sensitive data and discover practical steps to detect, prevent and respond to attacks.</description>
+  <pubDate>Fri, 09 Oct 2026 09:10:58 +1100</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/advisory/chinese-government-linked-cyber-threat-actors-combine-automated-and-hands-on-hacking-tools-to-steal-sensitive-data</guid>
+    </item>
+<item>
+  <title>Protect your organisations’ AI services</title>
+  <link>https://www.cyber.gov.au/advisory/protect-your-organisations-ai-services</link>
+  <description>Protect access to AI services by securing accounts, credentials and connected systems to reduce the risk of unauthorised use, disruption and data exposure.</description>
+  <pubDate>Fri, 25 Sep 2026 10:14:48 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/advisory/protect-your-organisations-ai-services</guid>
+    </item>
+<item>
+  <title>North Korean "WaterPlum," commonly referred to as “Contagious Interview,” cyber actor group targeting IT professionals</title>
+  <link>https://www.cyber.gov.au/advisory/north-korean-waterplum-commonly-referred-to-as-contagious-interview-cyber-actor-group-targeting-it-professionals</link>
+  <description>A joint cyber security advisory on North Korean threat actors targeting IT professionals through fake jobs, malware and cryptocurrency theft.</description>
+  <pubDate>Tue, 22 Sep 2026 16:06:17 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/advisory/north-korean-waterplum-commonly-referred-to-as-contagious-interview-cyber-actor-group-targeting-it-professionals</guid>
+    </item>
+<item>
+  <title>Digital camouflage: crypters make malware undetectable</title>
+  <link>https://www.cyber.gov.au/advisory/digital-camouflage-crypters-make-malware-undetectable</link>
+  <description>Cybercriminals are increasingly using crypters to disguise malware and make it harder for antivirus software to detect.</description>
+  <pubDate>Tue, 08 Sep 2026 21:27:55 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/advisory/digital-camouflage-crypters-make-malware-undetectable</guid>
+    </item>
+<item>
+  <title>Agentic AI harnesses</title>
+  <link>https://www.cyber.gov.au/advisory/agentic-ai-harnesses</link>
+  <description>Learn how an agentic AI harness influences security, governance and operational risk, and apply practical measures to adopt agentic AI securely.</description>
+  <pubDate>Tue, 22 Sep 2026 08:21:01 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/advisory/agentic-ai-harnesses</guid>
+    </item>
+<item>
+  <title>Russian state-supported cyber actors conduct phishing campaign targeting users of Zimbra Collaboration Suite</title>
+  <link>https://www.cyber.gov.au/advisory/russian-state-supported-cyber-actors-conduct-phishing-campaign-targeting-users-of-zimbra-collaboration-suite</link>
+  <description>Protect your organisation from phishing attacks by Russian state-sponsored cyber actors targeting Zimbra Collaboration Suite users.</description>
+  <pubDate>Tue, 08 Sep 2026 13:34:40 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/advisory/russian-state-supported-cyber-actors-conduct-phishing-campaign-targeting-users-of-zimbra-collaboration-suite</guid>
+    </item>
+
+  </channel>
+</rss>

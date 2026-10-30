@@ -1,0 +1,296 @@
+{
+ "success": true,
+ "errors": [],
+ "result": {
+  "annotations": [
+   {
+    "id": "641",
+    "dataSource": "ALL",
+    "description": "Mobile and NBN services unavailable",
+    "tags": [],
+    "scope": null,
+    "startDate": "2023-11-07T16:45:03Z",
+    "endDate": "2023-11-08T12:00:13Z",
+    "locations": [
+     "AU"
+    ],
+    "asns": [
+     4804
+    ],
+    "geoIds": [],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "LOCATION",
+      "entityValue": "AU",
+      "entityName": "Australia",
+      "entityLocation": null
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "4804",
+      "entityName": "MPX-AS",
+      "entityLocation": "AU"
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://twitter.com/CloudflareRadar/status/1721981303401173379",
+    "asnsDetails": [
+     {
+      "asn": "4804",
+      "name": "MPX-AS",
+      "location": {
+       "code": "AU",
+       "name": "Australia"
+      }
+     }
+    ],
+    "locationsDetails": [
+     {
+      "name": "Australia",
+      "code": "AU"
+     }
+    ],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "TECHNICAL_PROBLEM",
+     "outageType": "NETWORK"
+    }
+   },
+   {
+    "id": "607",
+    "dataSource": "ALL",
+    "description": "Hurricane Otis knocks out communications in Acapulco",
+    "tags": [],
+    "scope": null,
+    "startDate": "2023-10-25T06:25:45Z",
+    "endDate": "2024-01-01T00:00:00Z",
+    "locations": [
+     "MX"
+    ],
+    "asns": [],
+    "geoIds": [],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "LOCATION",
+      "entityValue": "MX",
+      "entityName": "Mexico",
+      "entityLocation": null
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://twitter.com/CloudflareRadar/status/1717247595456733564",
+    "asnsDetails": [],
+    "locationsDetails": [
+     {
+      "name": "Mexico",
+      "code": "MX"
+     }
+    ],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "WEATHER",
+     "outageType": "REGIONAL"
+    }
+   },
+   {
+    "id": "603",
+    "dataSource": "ALL",
+    "description": "Power outages after war broke in Gaza (Palestine-Israel). ",
+    "tags": [],
+    "scope": null,
+    "startDate": "2023-10-09T14:15:59Z",
+    "endDate": "2024-09-13T00:00:00Z",
+    "locations": [
+     "PS"
+    ],
+    "asns": [
+     199046,
+     213207,
+     57704
+    ],
+    "geoIds": [],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "LOCATION",
+      "entityValue": "PS",
+      "entityName": "Palestine",
+      "entityLocation": null
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "199046",
+      "entityName": "JETNET",
+      "entityLocation": "PS"
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "213207",
+      "entityName": "TechHub-HiNet",
+      "entityLocation": "PS"
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "57704",
+      "entityName": "SPEED-CLICK-LTD",
+      "entityLocation": "PS"
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://x.com/CloudflareRadar/status/1713930201288106289?s=20",
+    "asnsDetails": [
+     {
+      "asn": "199046",
+      "name": "JETNET",
+      "location": {
+       "code": "PS",
+       "name": "Palestine"
+      }
+     },
+     {
+      "asn": "213207",
+      "name": "TechHub-HiNet",
+      "location": {
+       "code": "PS",
+       "name": "Palestine"
+      }
+     },
+     {
+      "asn": "57704",
+      "name": "SPEED-CLICK-LTD",
+      "location": {
+       "code": "PS",
+       "name": "Palestine"
+      }
+     }
+    ],
+    "locationsDetails": [
+     {
+      "name": "Palestine",
+      "code": "PS"
+     }
+    ],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "POWER_OUTAGE",
+     "outageType": "NETWORK"
+    }
+   },
+   {
+    "id": "604",
+    "dataSource": "ALL",
+    "description": "Power outages after war broke in Gaza (Palestine-Israel). ",
+    "tags": [],
+    "scope": null,
+    "startDate": "2023-10-07T08:00:07Z",
+    "endDate": "2024-09-13T00:00:00Z",
+    "locations": [
+     "PS"
+    ],
+    "asns": [
+     203905,
+     210974,
+     42314,
+     60268,
+     60353,
+     62027
+    ],
+    "geoIds": [],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "LOCATION",
+      "entityValue": "PS",
+      "entityName": "Palestine",
+      "entityLocation": null
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "203905",
+      "entityName": "GEWAPE-AS",
+      "entityLocation": "KE"
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "210974",
+      "entityName": "AjyalFI",
+      "entityLocation": "PS"
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "42314",
+      "entityName": "fusion",
+      "entityLocation": "PS"
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "60268",
+      "entityName": "DIGITAL-COMMUNICATION-PALESTINE-ASN",
+      "entityLocation": "PS"
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "60353",
+      "entityName": null,
+      "entityLocation": null
+     },
+     {
+      "entityType": "AS",
+      "entityValue": "62027",
+      "entityName": null,
+      "entityLocation": null
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://x.com/CloudflareRadar/status/1710796767288021225?s=20",
+    "asnsDetails": [
+     {
+      "asn": "203905",
+      "name": "GEWAPE-AS",
+      "location": {
+       "code": "KE",
+       "name": "Kenya"
+      }
+     },
+     {
+      "asn": "210974",
+      "name": "AjyalFI",
+      "location": {
+       "code": "PS",
+       "name": "Palestine"
+      }
+     },
+     {
+      "asn": "42314",
+      "name": "fusion",
+      "location": {
+       "code": "PS",
+       "name": "Palestine"
+      }
+     },
+     {
+      "asn": "60268",
+      "name": "DIGITAL-COMMUNICATION-PALESTINE-ASN",
+      "location": {
+       "code": "PS",
+       "name": "Palestine"
+      }
+     }
+    ],
+    "locationsDetails": [
+     {
+      "name": "Palestine",
+      "code": "PS"
+     }
+    ],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "POWER_OUTAGE",
+     "outageType": "NETWORK"
+    }
+   }
+  ]
+ }
+}

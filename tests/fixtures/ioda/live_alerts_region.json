@@ -1,0 +1,96 @@
+{
+ "type": "outages.alerts",
+ "metadata": {},
+ "error": null,
+ "perf": null,
+ "requestParameters": {
+  "from": "1791969300",
+  "until": "1793178900",
+  "datasource": null,
+  "limit": 500,
+  "entityType": "region",
+  "entityCode": "173"
+ },
+ "data": [
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "173",
+    "name": "New South Wales",
+    "subnames": [],
+    "type": "region",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU.173",
+     "country_code": "AU",
+     "country_name": "Australia"
+    }
+   },
+   "time": 1792102800,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 1200,
+   "historyValue": 18000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "173",
+    "name": "New South Wales",
+    "subnames": [],
+    "type": "region",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU.173",
+     "country_code": "AU",
+     "country_name": "Australia"
+    }
+   },
+   "time": 1792104600,
+   "level": "normal",
+   "condition": "normal",
+   "value": 16200,
+   "historyValue": 18000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "173",
+    "name": "New South Wales",
+    "subnames": [],
+    "type": "region",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU.173",
+     "country_code": "AU",
+     "country_name": "Australia"
+    }
+   },
+   "time": 1792281600,
+   "level": "critical",
+   "condition": "< 0.8",
+   "value": 3780,
+   "historyValue": 18000,
+   "method": "median"
+  },
+  {
+   "datasource": "ping-slash24",
+   "entity": {
+    "code": "173",
+    "name": "New South Wales",
+    "subnames": [],
+    "type": "region",
+    "attrs": {
+     "fqid": "geo.netacuity.OC.AU.173",
+     "country_code": "AU",
+     "country_name": "Australia"
+    }
+   },
+   "time": 1792285200,
+   "level": "normal",
+   "condition": "normal",
+   "value": 17800,
+   "historyValue": 18000,
+   "method": "median"
+  }
+ ]
+}

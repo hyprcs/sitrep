@@ -1,0 +1,104 @@
+{
+  "ts": 1793156939.8875132,
+  "checks": [
+    {
+      "kind": "router",
+      "name": "Home router",
+      "ok": true,
+      "ms": 1.2,
+      "error": null,
+      "isp": false,
+      "note": null
+    },
+    {
+      "kind": "tcp",
+      "name": "Cloudflare 1.1.1.1",
+      "ok": true,
+      "ms": 3.2,
+      "error": null,
+      "isp": false,
+      "note": null
+    },
+    {
+      "kind": "tcp",
+      "name": "Google 8.8.8.8",
+      "ok": true,
+      "ms": 2.8,
+      "error": null,
+      "isp": false,
+      "note": null
+    },
+    {
+      "kind": "tcp",
+      "name": "Quad9 9.9.9.9",
+      "ok": true,
+      "ms": 2.7,
+      "error": null,
+      "isp": false,
+      "note": null
+    },
+    {
+      "kind": "tcp",
+      "name": "Unroutable test address",
+      "ok": false,
+      "ms": null,
+      "error": "timed out",
+      "isp": false,
+      "note": null
+    },
+    {
+      "kind": "dns",
+      "name": "Router (ISP DNS)",
+      "ok": true,
+      "ms": 11.1,
+      "error": null,
+      "isp": true,
+      "note": "www.google.com"
+    },
+    {
+      "kind": "dns",
+      "name": "Cloudflare DNS",
+      "ok": true,
+      "ms": 12.4,
+      "error": null,
+      "isp": false,
+      "note": "www.google.com"
+    },
+    {
+      "kind": "https",
+      "name": "Google",
+      "ok": true,
+      "ms": 130.0,
+      "error": null,
+      "isp": false,
+      "note": "HTTP 204"
+    },
+    {
+      "kind": "https",
+      "name": "Cloudflare",
+      "ok": true,
+      "ms": 28.5,
+      "error": null,
+      "isp": false,
+      "note": "HTTP 200"
+    },
+    {
+      "kind": "https",
+      "name": "Apple",
+      "ok": true,
+      "ms": 20.1,
+      "error": null,
+      "isp": false,
+      "note": "HTTP 200"
+    },
+    {
+      "kind": "https",
+      "name": "ABC (Akamai)",
+      "ok": true,
+      "ms": 63.0,
+      "error": null,
+      "isp": false,
+      "note": "HTTP 200"
+    }
+  ]
+}

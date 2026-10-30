@@ -1,0 +1,212 @@
+{
+ "success": true,
+ "errors": [],
+ "result": {
+  "asn_info": [
+   {
+    "asn": 4826,
+    "org_name": "VOCUS PTY LTD",
+    "country_code": "AU"
+   },
+   {
+    "asn": 7551,
+    "org_name": "SECURITY SHIFT CLOUD PTY LTD",
+    "country_code": "AU"
+   },
+   {
+    "asn": 24482,
+    "org_name": "OneAsiaHost",
+    "country_code": "SG"
+   },
+   {
+    "asn": 38195,
+    "org_name": "SUPERLOOP (AUSTRALIA) PTY LTD",
+    "country_code": "AU"
+   },
+   {
+    "asn": 38456,
+    "org_name": "Speedcast Managed Services Pty Limited",
+    "country_code": "AU"
+   },
+   {
+    "asn": 55720,
+    "org_name": "Gigabit Hosting Sdn Bhd",
+    "country_code": "MY"
+   },
+   {
+    "asn": 58511,
+    "org_name": "Anycast Holdings Pty Ltd",
+    "country_code": "AU"
+   },
+   {
+    "asn": 133095,
+    "org_name": "Blue Jeans Network",
+    "country_code": "AU"
+   },
+   {
+    "asn": 134654,
+    "org_name": "PT Datautama Dinamika - NAP",
+    "country_code": "ID"
+   },
+   {
+    "asn": 137409,
+    "org_name": "GSL Networks Pty LTD",
+    "country_code": "AU"
+   },
+   {
+    "asn": 141983,
+    "org_name": "PT Rajeg Media Telekomunikasi",
+    "country_code": "ID"
+   },
+   {
+    "asn": 142591,
+    "org_name": "MYTEK TRADING PTY LTD",
+    "country_code": "AU"
+   }
+  ],
+  "events": [
+   {
+    "countries": [
+     "AU",
+     "AU",
+     "AU"
+    ],
+    "detected_ts": "2026-10-28T08:13:31",
+    "finished": false,
+    "id": 653099,
+    "leak_asn": 7551,
+    "leak_count": 2,
+    "leak_seg": [
+     58511,
+     7551,
+     4826
+    ],
+    "leak_type": 1,
+    "max_ts": "2026-10-28T08:17:03",
+    "min_ts": "2026-10-28T08:13:31",
+    "origin_count": 1,
+    "peer_count": 1,
+    "prefix_count": 1
+   },
+   {
+    "countries": [
+     "AU"
+    ],
+    "detected_ts": "2026-10-28T05:58:01",
+    "finished": false,
+    "id": 652948,
+    "leak_asn": 219498,
+    "leak_count": 9,
+    "leak_seg": [
+     137409,
+     219498,
+     218914
+    ],
+    "leak_type": 1,
+    "max_ts": "2026-10-28T23:49:08",
+    "min_ts": "2026-10-28T05:58:01",
+    "origin_count": 1,
+    "peer_count": 8,
+    "prefix_count": 1
+   },
+   {
+    "countries": [
+     "AU",
+     "ID",
+     "ID"
+    ],
+    "detected_ts": "2026-10-26T09:11:08",
+    "finished": false,
+    "id": 650923,
+    "leak_asn": 141983,
+    "leak_count": 77,
+    "leak_seg": [
+     133095,
+     141983,
+     134654
+    ],
+    "leak_type": 1,
+    "max_ts": "2026-10-29T00:33:57",
+    "min_ts": "2026-10-26T09:11:08",
+    "origin_count": 1,
+    "peer_count": 31,
+    "prefix_count": 3
+   },
+   {
+    "countries": [
+     "SG",
+     "MY",
+     "AU"
+    ],
+    "detected_ts": "2026-10-26T03:57:44",
+    "finished": false,
+    "id": 650720,
+    "leak_asn": 142591,
+    "leak_count": 171,
+    "leak_seg": [
+     24482,
+     142591,
+     55720
+    ],
+    "leak_type": 1,
+    "max_ts": "2026-10-29T01:55:16",
+    "min_ts": "2026-10-26T03:57:44",
+    "origin_count": 2,
+    "peer_count": 15,
+    "prefix_count": 9
+   },
+   {
+    "countries": [
+     "AU",
+     "AU",
+     "AU"
+    ],
+    "detected_ts": "2026-10-26T00:13:40",
+    "finished": true,
+    "id": 650588,
+    "leak_asn": 7551,
+    "leak_count": 15,
+    "leak_seg": [
+     4826,
+     7551,
+     58511
+    ],
+    "leak_type": 1,
+    "max_ts": "2026-10-28T23:08:29",
+    "min_ts": "2026-10-26T00:13:40",
+    "origin_count": 1,
+    "peer_count": 1,
+    "prefix_count": 1
+   },
+   {
+    "countries": [
+     "AU",
+     "AU",
+     "AU"
+    ],
+    "detected_ts": "2026-10-25T15:00:22",
+    "finished": true,
+    "id": 650314,
+    "leak_asn": 38456,
+    "leak_count": 7,
+    "leak_seg": [
+     38195,
+     38456,
+     4826
+    ],
+    "leak_type": 1,
+    "max_ts": "2026-10-28T15:34:33",
+    "min_ts": "2026-10-25T15:00:22",
+    "origin_count": 1,
+    "peer_count": 4,
+    "prefix_count": 1
+   }
+  ]
+ },
+ "result_info": {
+  "count": 6,
+  "total_count": 6,
+  "page": 1,
+  "per_page": 100
+ }
+}

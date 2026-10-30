@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0d0d">
+  <title>sitrep</title>
+  <link rel="icon" id="favicon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="server-banner" class="server-banner" role="alert" hidden></div>
+  <div id="sim-banner" class="sim-banner" role="status" hidden></div>
+
+  <div class="page">
+    <header class="masthead">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">sitrep</span>
+        <span class="brand-sub">Sydney &amp; Australia</span>
+      </div>
+      <time id="clock" class="clock"></time>
+    </header>
+
+    <section id="sim-card" class="card sim-card" aria-live="polite" hidden>
+      <p id="sim-title" class="sim-title"></p>
+      <p id="sim-explain" class="sim-explain"></p>
+      <p id="sim-next" class="sim-next"></p>
+    </section>
+
+    <section id="overall" class="hero card lvl-unknown" aria-live="polite">
+      <div id="overall-icon" class="hero-icon"></div>
+      <div class="hero-body">
+        <p class="hero-kicker">Overall status</p>
+        <h1 id="overall-label" class="hero-label">Starting up</h1>
+        <p id="overall-reason" class="hero-reason">Loading&hellip;</p>
+        <p id="overall-meta" class="hero-meta"></p>
+        <p id="overall-alerts" class="hero-warn" hidden></p>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="categories-title">
+      <h2 id="categories-title" class="block-title">Categories</h2>
+      <div id="categories" class="cats"></div>
+    </section>
+
+    <section class="block" aria-labelledby="sources-title">
+      <h2 id="sources-title" class="block-title">Sources</h2>
+      <div id="sources" class="tiles"></div>
+    </section>
+
+    <section id="networks-block" class="block" aria-labelledby="networks-title" hidden>
+      <h2 id="networks-title" class="block-title">Australian networks, last 24 hours</h2>
+      <div id="networks-card" class="card nets-card">
+        <div class="nets-head" aria-hidden="true">
+          <span>Network</span><span>Now</span>
+          <span class="nets-axis"><span>24 h ago</span><span>Active probing</span><span>Now</span></span>
+        </div>
+        <div id="networks"></div>
+        <div id="nets-tip" class="tip" hidden></div>
+        <p class="nets-note">
+          Each line is the share of a network's address blocks answering IODA's pings, compared
+          with its usual level today. The dashed line is usual; grey bands are gaps in IODA's data.
+          <span id="networks-meta"></span>
+          Data: <a href="https://ioda.inetintel.cc.gatech.edu/" target="_blank" rel="noopener noreferrer">IODA, Georgia Tech</a>.
+        </p>
+      </div>
+    </section>
+
+    <section id="radar-block" class="block" aria-labelledby="radar-title" hidden>
+      <h2 id="radar-title" class="block-title">Australian traffic, today vs last week</h2>
+      <div id="radar-card" class="card radar-card">
+        <div id="radar-chart" class="radar-chart"></div>
+        <div id="radar-tip" class="tip" hidden></div>
+        <div class="strip-axis" aria-hidden="true"><span id="radar-start"></span><span id="radar-end"></span></div>
+        <ul class="legend">
+          <li><span class="key key-today"></span>Today</li>
+          <li><span class="key key-lastweek"></span>Same time last week</li>
+        </ul>
+        <div id="radar-carriers" class="radar-carriers"></div>
+        <h3 class="radar-subtitle">Outages Cloudflare reported, last 7 days</h3>
+        <ul id="radar-reports" class="radar-reports"></ul>
+        <p id="radar-routes" class="radar-routes"></p>
+        <p class="nets-note">
+          Both lines are Cloudflare's traffic on one shared scale, so they can be compared but have no unit.
+          Radar runs about an hour and a half behind. <span id="radar-meta"></span>
+          Data: <a href="https://radar.cloudflare.com/au" target="_blank" rel="noopener noreferrer">Cloudflare Radar</a> (CC BY-NC 4.0).
+        </p>
+      </div>
+    </section>
+
+    <section id="telcos-block" class="block" aria-labelledby="telcos-title" hidden>
+      <h2 id="telcos-title" class="block-title">What the telcos say</h2>
+      <div id="telcos" class="telcos"></div>
+      <p class="nets-note telcos-note">
+        TPG and Aussie Broadband publish their outage lists for programs to read, so sitrep checks them every
+        10 minutes and sets planned maintenance apart from real outages. The others only show outages for an address
+        you type in on their own sites. For information only: these never change the overall status.
+        <span id="telcos-meta"></span>
+      </p>
+    </section>
+
+    <section id="bluesky-block" class="block" aria-labelledby="bluesky-title" hidden>
+      <h2 id="bluesky-title" class="block-title">On Bluesky, last 24 hours</h2>
+      <div id="bluesky-card" class="card nets-card bluesky-card">
+        <div class="nets-head" aria-hidden="true">
+          <span>Posts about</span><span>Now</span>
+          <span class="nets-axis"><span>24 h ago</span><span>People per 15 minutes</span><span>Now</span></span>
+        </div>
+        <div id="bluesky-groups"></div>
+        <div id="bluesky-tip" class="tip" hidden></div>
+        <p class="nets-note">
+          Each bar counts the different people who posted matching words in 15 minutes; the dashed line is usual
+          for that time of the week. Only counts and a few example posts are kept, and an example is deleted when
+          its author deletes it. Posts belong to their authors.
+          <span id="bluesky-meta"></span>
+          Data: <a href="https://bsky.app/" target="_blank" rel="noopener noreferrer">Bluesky</a>, via Jetstream.
+        </p>
+      </div>
+    </section>
+
+    <section id="acsc-block" class="block" aria-labelledby="acsc-title" hidden>
+      <h2 id="acsc-title" class="block-title">Latest from the ACSC</h2>
+      <div id="acsc-card" class="card acsc-card">
+        <ul id="acsc-items" class="acsc-items"></ul>
+        <p class="nets-note">
+          <span id="acsc-meta"></span>
+          Source: ASD's ACSC, <a href="https://www.cyber.gov.au/" target="_blank" rel="noopener noreferrer">cyber.gov.au</a>.
+          &copy; Commonwealth of Australia <span id="acsc-year"></span>, CC BY 4.0.
+        </p>
+      </div>
+    </section>
+
+    <section id="grid-block" class="block" aria-labelledby="grid-title" hidden>
+      <h2 id="grid-title" class="block-title">Electricity grid</h2>
+      <div id="grid-card" class="card radar-card grid-card">
+        <div id="grid-stats" class="grid-stats"></div>
+        <div id="grid-chart" class="radar-chart grid-chart"></div>
+        <div id="grid-tip" class="tip" hidden></div>
+        <div class="strip-axis" aria-hidden="true"><span id="grid-start"></span><span id="grid-end"></span></div>
+        <ul class="legend">
+          <li><span class="key key-today"></span>Demand today</li>
+          <li><span class="key key-lastweek"></span>Same time yesterday</li>
+        </ul>
+        <p id="grid-elsewhere" class="grid-elsewhere"></p>
+        <h3 id="grid-notices-title" class="radar-subtitle">AEMO notices, last 24 hours</h3>
+        <ul id="grid-notices" class="grid-notices"></ul>
+        <p class="nets-note">
+          Demand is what the region draws from the grid; rooftop solar lowers it in the middle of the day.
+          <span id="grid-meta"></span>
+          Data: <a href="https://www.aemo.com.au/energy-systems/electricity/national-electricity-market-nem/data-nem/data-dashboard-nem" target="_blank" rel="noopener noreferrer">AEMO</a>
+          and <a href="https://nemweb.com.au/Reports/Current/Market_Notice/" target="_blank" rel="noopener noreferrer">NEMWeb</a>,
+          used under AEMO's <a href="https://aemo.com.au/privacy-and-legal-notices/copyright-permissions" target="_blank" rel="noopener noreferrer">copyright permissions</a>.
+        </p>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="uptime-title">
+      <h2 id="uptime-title" class="block-title">Your connection, last 24 hours</h2>
+      <div id="strip-card" class="card strip-card">
+        <div id="uptime"></div>
+        <div id="strip-tip" class="tip" hidden></div>
+        <div class="strip-axis" aria-hidden="true"><span>24 h ago</span><span>12 h ago</span><span>Now</span></div>
+        <p id="uptime-summary" class="strip-summary"></p>
+        <ul class="legend">
+          <li><span class="swatch lvl-normal"></span>All checks OK</li>
+          <li><span class="swatch lvl-elevated"></span>Some checks failing</li>
+          <li><span class="swatch lvl-critical"></span>Internet unreachable</li>
+          <li><span class="swatch lvl-none"></span>No data</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block" aria-labelledby="timeline-title">
+      <h2 id="timeline-title" class="block-title">Timeline, last 24 hours</h2>
+      <ol id="timeline" class="card timeline"></ol>
+    </section>
+
+    <footer id="footer" class="footer"></footer>
+  </div>
+
+  <noscript><p class="noscript">sitrep needs JavaScript to show live status.</p></noscript>
+  <script src="app.js"></script>
+</body>
+</html>

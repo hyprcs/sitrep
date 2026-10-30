@@ -1,0 +1,36 @@
+-------------------------------------------------------------------
+                           MARKET NOTICE
+-------------------------------------------------------------------
+
+From :              AEMO
+To   :              NEMITWEB1
+Creation Date :     28/10/2026     18:40:20
+
+-------------------------------------------------------------------
+
+Notice ID               :         145858
+Notice Type ID          :         NON-CONFORMANCE
+Notice Type Description :         Details of Non-conformance/Conformance
+Issue Date              :         28/10/2026
+External Reference      :         NON-CONFORMANCE Region QLD1 Wednesday, 28 October 2026
+
+-------------------------------------------------------------------
+
+Reason :
+
+AEMO ELECTRICITY MARKET NOTICE
+
+NON-CONFORMANCE QLD1 Region Wednesday, 28 October 2026
+
+AEMO has declared the following unit as non-conforming under clause 3.8.23 of the National Electricity Rules:
+
+Unit:      RRSF1
+Duration:   28/10/2026 12:00 to 28/10/2026 18:40
+Amount:     -63 MW
+Constraint: NC-Q_RRSF1
+
+Auto-generated on behalf of Manager NEM Real Time Operations
+
+-------------------------------------------------------------------
+END OF REPORT
+-------------------------------------------------------------------

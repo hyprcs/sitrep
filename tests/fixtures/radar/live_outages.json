@@ -1,0 +1,198 @@
+{
+ "success": true,
+ "errors": [],
+ "result": {
+  "annotations": [
+   {
+    "id": "1739",
+    "dataSource": "ALL",
+    "description": "Damage to two international fiber optic links on Route Nationale 1 caused a complete outage on Digicel Haiti (AS27653)",
+    "tags": [],
+    "scope": null,
+    "startDate": "2026-10-27T17:15:00Z",
+    "endDate": "2026-10-28T15:30:00Z",
+    "locations": [],
+    "asns": [
+     27653
+    ],
+    "geoIds": [],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "AS",
+      "entityValue": "27653",
+      "entityName": "Digicel Haiti",
+      "entityLocation": "HT"
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://x.com/CloudflareRadar/status/2115398296399237152",
+    "asnsDetails": [
+     {
+      "asn": "27653",
+      "name": "Digicel Haiti",
+      "location": {
+       "code": "HT",
+       "name": "Haiti"
+      }
+     }
+    ],
+    "locationsDetails": [],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "CABLE_CUT",
+     "outageType": "NETWORK"
+    }
+   },
+   {
+    "id": "1737",
+    "dataSource": "ALL",
+    "description": "A fault on the national grid caused a drop in Internet traffic from Bangladesh, mainly affecting eastern Dhaka and parts of Chattogram.",
+    "tags": [],
+    "scope": null,
+    "startDate": "2026-10-27T06:30:00Z",
+    "endDate": "2026-10-27T12:00:00Z",
+    "locations": [
+     "BD"
+    ],
+    "asns": [],
+    "geoIds": [],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "LOCATION",
+      "entityValue": "BD",
+      "entityName": "Bangladesh",
+      "entityLocation": null
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://x.com/CloudflareRadar/status/2115132538502992056",
+    "asnsDetails": [],
+    "locationsDetails": [
+     {
+      "name": "Bangladesh",
+      "code": "BD"
+     }
+    ],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "POWER_OUTAGE",
+     "outageType": "REGIONAL"
+    }
+   },
+   {
+    "id": "1734",
+    "dataSource": "ALL",
+    "description": "Ukrainian drone strikes on energy infrastructure caused power outages that disrupted Internet connectivity in Russian-occupied Crimea and Sevastopol",
+    "tags": [],
+    "scope": null,
+    "startDate": "2026-10-23T21:45:00Z",
+    "endDate": "2026-10-25T04:30:00Z",
+    "locations": [],
+    "asns": [],
+    "geoIds": [
+     "694422",
+     "703883"
+    ],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "GEOLOCATION",
+      "entityValue": "694422",
+      "entityName": "Sevastopol City, Ukraine",
+      "entityLocation": "UA"
+     },
+     {
+      "entityType": "GEOLOCATION",
+      "entityValue": "703883",
+      "entityName": "Crimea, Ukraine",
+      "entityLocation": "UA"
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://x.com/CloudflareRadar/status/2113987193056493625",
+    "asnsDetails": [],
+    "locationsDetails": [],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "MILITARY_ACTION",
+     "outageType": "REGIONAL"
+    }
+   },
+   {
+    "id": "1733",
+    "dataSource": "ALL",
+    "description": "Russian strikes on energy infrastructure caused power outages that disrupted Internet connectivity in Zhytomyr Oblast, Ukraine",
+    "tags": [],
+    "scope": null,
+    "startDate": "2026-10-22T10:15:00Z",
+    "endDate": "2026-10-24T06:30:00Z",
+    "locations": [],
+    "asns": [],
+    "geoIds": [
+     "686966"
+    ],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "GEOLOCATION",
+      "entityValue": "686966",
+      "entityName": "Zhytomyr Oblast, Ukraine",
+      "entityLocation": "UA"
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://x.com/CloudflareRadar/status/2113407921711181887",
+    "asnsDetails": [],
+    "locationsDetails": [],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "MILITARY_ACTION",
+     "outageType": "REGIONAL"
+    }
+   },
+   {
+    "id": "1725",
+    "dataSource": "ALL",
+    "description": "Disruptions after data center drone strike",
+    "tags": [],
+    "scope": null,
+    "startDate": "2026-10-18T00:00:00Z",
+    "endDate": null,
+    "locations": [],
+    "asns": [
+     47541
+    ],
+    "geoIds": [],
+    "origins": [],
+    "entities": [
+     {
+      "entityType": "AS",
+      "entityValue": "47541",
+      "entityName": "VKONTAKTE-SPB-AS",
+      "entityLocation": "RU"
+     }
+    ],
+    "eventType": "OUTAGE",
+    "linkedUrl": "https://x.com/CloudflareRadar/status/2112285500002426910",
+    "asnsDetails": [
+     {
+      "asn": "47541",
+      "name": "VKONTAKTE-SPB-AS",
+      "location": {
+       "code": "RU",
+       "name": "Russian Federation"
+      }
+     }
+    ],
+    "locationsDetails": [],
+    "originsDetails": [],
+    "outage": {
+     "outageCause": "MILITARY_ACTION",
+     "outageType": "NETWORK"
+    }
+   }
+  ]
+ }
+}

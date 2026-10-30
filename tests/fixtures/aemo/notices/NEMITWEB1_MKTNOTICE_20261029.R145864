@@ -1,0 +1,39 @@
+-------------------------------------------------------------------
+                           MARKET NOTICE
+-------------------------------------------------------------------
+
+From :              AEMO
+To   :              NEMITWEB1
+Creation Date :     29/10/2026     12:02:24
+
+-------------------------------------------------------------------
+
+Notice ID               :         145864
+Notice Type ID          :         INTER-REGIONAL TRANSFER
+Notice Type Description :         Inter-Regional Transfer limit variation
+Issue Date              :         29/10/2026
+External Reference      :         Cancellation Inter-regional transfer limit variation - NSW region - 29/10/2026
+
+-------------------------------------------------------------------
+
+Reason :
+
+AEMO ELECTRICITY MARKET NOTICE
+
+Cancellation - Inter-regional transfer limit variation - NSW region - 29/10/2026
+
+Refer to Market Notice 145861
+
+Cancellation of the unplanned restriction on the NSW1-SA1 Interconnector at 1200 hrs 29/10/2026.
+
+The following constraint set(s) revoked at 1200 hrs 29/10/2026.
+I-NS_100
+
+This constraint set(s) contains equations with the following interconnectors on the LHS.
+NSW1-SA1
+  
+Manager NEM Real Time Operations
+
+-------------------------------------------------------------------
+END OF REPORT
+-------------------------------------------------------------------

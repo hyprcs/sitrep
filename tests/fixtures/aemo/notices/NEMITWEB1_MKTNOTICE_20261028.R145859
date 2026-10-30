@@ -1,0 +1,36 @@
+-------------------------------------------------------------------
+                           MARKET NOTICE
+-------------------------------------------------------------------
+
+From :              AEMO
+To   :              NEMITWEB1
+Creation Date :     28/10/2026     19:55:32
+
+-------------------------------------------------------------------
+
+Notice ID               :         145859
+Notice Type ID          :         RECLASSIFY CONTINGENCY
+Notice Type Description :         Reclassify contingency events
+Issue Date              :         28/10/2026
+External Reference      :         Reclassification of a Non-Credible Contingency Event: Goonyella - North Goonyella Tee - Stoney Creek No. 7122 and Goonyella - Newlands No. 7155 132 kV lines in QLD due to lightning.
+
+-------------------------------------------------------------------
+
+Reason :
+
+AEMO ELECTRICITY MARKET NOTICE.
+
+Reclassification of a non-credible contingency event as a credible contingency event due to lightning.
+
+AEMO considers the simultaneous trip of the following circuits to now be more likely and reasonably possible. Accordingly AEMO has reclassified it as a credible contingency event.
+
+Region: QLD
+
+Lines: Goonyella - North Goonyella Tee - Stoney Creek No. 7122 and the Goonyella - Newlands No. 7155 132 kV lines.
+Duration: 28/10/2026 1955 until further notice
+Constraint set(s) invoked: Q-SMTX_CVGYR_N-2
+Manager NEM Real Time Operations
+
+-------------------------------------------------------------------
+END OF REPORT
+-------------------------------------------------------------------

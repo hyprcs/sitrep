@@ -1,0 +1,41 @@
+-------------------------------------------------------------------
+                           MARKET NOTICE
+-------------------------------------------------------------------
+
+From :              AEMO
+To   :              NEMITWEB1
+Creation Date :     29/10/2026     12:47:15
+
+-------------------------------------------------------------------
+
+Notice ID               :         145867
+Notice Type ID          :         NEM SYSTEMS
+Notice Type Description :         MMS, EMS, SCADA, IT, BIDDING
+Issue Date              :         29/10/2026
+External Reference      :         SERVICE INTERRUPTION - NSW SCADA
+
+-------------------------------------------------------------------
+
+Reason :
+
+AEMO ELECTRICITY MARKET NOTICE
+SERVICE INTERRUPTION
+AEMO is experiencing a service interruption relating to NSW SCADA
+
+AEMO is working on restoring the service. AEMO Support Hub will provide updates as more information becomes available.
+
+Dispatch of market targets via SCADA / AGC has failed.
+
+Affected participants are requested to enable their backup systems in order to receive dispatch targets and manually follow dispatch targets, including as part of semi-dispatch intervals, until further notice. 
+
+Participants are requested to contact the AEMO Electricity Control Room if unable to follow their dispatch targets.
+
+For further enquiries please contact the AEMO Support Hub 
+Phone: 1300236600 Opt1 
+Email: supporthub@aemo.com.au
+
+Manager NEM Real Time Operations
+
+-------------------------------------------------------------------
+END OF REPORT
+-------------------------------------------------------------------

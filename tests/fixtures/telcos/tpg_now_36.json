@@ -1,0 +1,101 @@
+{
+ "createdAt": 1793251800,
+ "data": [
+  {
+   "id": "900101",
+   "heading": "Newtown (NSW) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "NSW",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-30 19:00:00",
+   "date": "2026-10-26 00:00:00",
+   "enddate": null
+  },
+  {
+   "id": "900102",
+   "heading": "Hornsby (NSW) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "NSW",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-30 06:00:00",
+   "date": "2026-10-28 22:00:00",
+   "enddate": null
+  },
+  {
+   "id": "900103",
+   "heading": "Penrith (NSW) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "NSW",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-31 06:00:00",
+   "date": "2026-10-29 00:00:00",
+   "enddate": null
+  },
+  {
+   "id": "900104",
+   "heading": "Footscray (VIC) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "VIC",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-30 06:00:00",
+   "date": "2026-10-27 00:00:00",
+   "enddate": null
+  },
+  {
+   "id": "900105",
+   "heading": "Geelong (VIC) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "VIC",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-29 23:00:00",
+   "date": "2026-10-29 01:00:00",
+   "enddate": null
+  },
+  {
+   "id": "900106",
+   "heading": "Nerang (QLD) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "QLD",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-31 20:00:00",
+   "date": "2026-10-23 08:00:00",
+   "enddate": null
+  },
+  {
+   "id": "900107",
+   "heading": "Toowong (QLD) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "QLD",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-30 05:00:00",
+   "date": "2026-10-28 23:00:00",
+   "enddate": null
+  },
+  {
+   "id": "900108",
+   "heading": "Bateman (WA) Customers",
+   "message": "Planned maintenance on the wholesale network. Services may drop out for short periods during this window.",
+   "internal_only": "0",
+   "affected_sites": "WA",
+   "severity": "4",
+   "source": "Third Party Carrier",
+   "estimate": "2026-10-30 04:00:00",
+   "date": "2026-10-26 22:00:00",
+   "enddate": null
+  }
+ ]
+}

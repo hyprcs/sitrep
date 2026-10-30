@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0" xml:base="https://www.cyber.gov.au/">
+  <channel>
+    <title>ASD's ACSC - Alerts RSS</title>
+    <link>https://www.cyber.gov.au/</link>
+    <description>ACSC - Recent Alerts</description>
+    <language>en</language>
+    
+    <item>
+  <title>Critical vulnerabilities in Fortinet products</title>
+  <link>https://www.cyber.gov.au/alert/critical-vulnerabilities-in-fortinet-products</link>
+  <description>Fortinet have announced critical vulnerabilities in Fortinet products, and are releasing security updates which customers should implement as a priority.</description>
+  <pubDate>Fri, 23 Oct 2026 16:11:47 +1100</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/critical-vulnerabilities-in-fortinet-products</guid>
+    </item>
+<item>
+  <title>Critical vulnerabilities in PHP</title>
+  <link>https://www.cyber.gov.au/alert/critical-vulnerabilities-in-php</link>
+  <description>A security release for two critical PHP vulnerabilities is set for public disclosure on 22 October 2026. PHP is widely used to power web applications.</description>
+  <pubDate>Wed, 21 Oct 2026 14:01:26 +1100</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/critical-vulnerabilities-in-php</guid>
+    </item>
+<item>
+  <title>Protecting operational technology and edge devices</title>
+  <link>https://www.cyber.gov.au/alert/protecting-operational-technology-and-edge-devices</link>
+  <description>Alert on the cyber security risks to operational technology (OT), including refrigeration and cooling technology, with mitigation advice and guidance for businesses and organisations that operate this technology.</description>
+  <pubDate>Wed, 14 Oct 2026 13:17:37 +1100</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/protecting-operational-technology-and-edge-devices</guid>
+    </item>
+<item>
+  <title>Critical vulnerabilities in Citrix NetScaler ADC and Citrix NetScaler Gateway products</title>
+  <link>https://www.cyber.gov.au/alert/critical-vulnerabilities-in-citrix-netscaler-adc-and-citrix-netscaler-gateway-products</link>
+  <description>Alert for organisations to implement a high-priority patch addressing new vulnerabilities, under active exploitation in Citrix NetScaler ADC and Citrix NetScaler Gateway products.</description>
+  <pubDate>Thu, 01 Oct 2026 10:39:24 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/critical-vulnerabilities-in-citrix-netscaler-adc-and-citrix-netscaler-gateway-products</guid>
+    </item>
+<item>
+  <title>Risks of AI misalignment to Australian organisations</title>
+  <link>https://www.cyber.gov.au/alert/risks-of-ai-misalignment-to-australian-organisations</link>
+  <description>Alert on the risks of AI misalignment to Australian organisations, with mitigation advice and guidance on secure AI practices for organisations.</description>
+  <pubDate>Fri, 25 Sep 2026 09:43:51 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/risks-of-ai-misalignment-to-australian-organisations</guid>
+    </item>
+<item>
+  <title>Active exploitation of Adobe Commerce and Magento Open Source vulnerability</title>
+  <link>https://www.cyber.gov.au/alert/active-exploitation-of-adobe-commerce-and-magento-open-source-vulnerability</link>
+  <description>Alert on active exploitation of a critical vulnerability in Adobe Commerce and Magento Open Source.</description>
+  <pubDate>Wed, 09 Sep 2026 12:58:57 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/active-exploitation-of-adobe-commerce-and-magento-open-source-vulnerability</guid>
+    </item>
+<item>
+  <title>Critical vulnerabilities in Citrix NetScaler Application Delivery Controller (ADC) and Citrix NetScaler Gateway products</title>
+  <link>https://www.cyber.gov.au/alert/critical-vulnerabilities-in-citrix-netscaler-application-delivery-controller-adc-and-citrix-netscaler-gateway-products</link>
+  <description>Alert on critical vulnerabilities affecting Citrix NetScaler ADC and Gateway products. Assess exposure and update all affected products.</description>
+  <pubDate>Tue, 08 Sep 2026 13:34:40 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/critical-vulnerabilities-in-citrix-netscaler-application-delivery-controller-adc-and-citrix-netscaler-gateway-products</guid>
+    </item>
+<item>
+  <title>Active exploitation of a software development platform within Australia</title>
+  <link>https://www.cyber.gov.au/node/1215</link>
+  <description>Alert on actively exploited vulnerabilities affecting TeamCity On-Premise servers. Assess exposure and apply vendor mitigations for CVE 2026 63077 (Critical, 9.8).</description>
+  <pubDate>Wed, 02 Sep 2026 12:05:23 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/node/1215</guid>
+    </item>
+<item>
+  <title>Active exploitation of a software development platform within Australia</title>
+  <link>https://www.cyber.gov.au/alert/active-exploitation-of-a-software-development-platform-within-australia</link>
+  <description>Alert on actively exploited vulnerabilities affecting TeamCity On-Premise servers. Assess exposure and apply vendor mitigations for CVE 2026 63077 (Critical, 9.8).</description>
+  <pubDate>Mon, 24 Aug 2026 16:03:59 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/active-exploitation-of-a-software-development-platform-within-australia</guid>
+    </item>
+<item>
+  <title>Active exploitation of remote monitoring and management platform within Australia</title>
+  <link>https://www.cyber.gov.au/alert/active-exploitation-of-remote-monitoring-and-management-platform-within-australia</link>
+  <description>Alert on active exploitation in Australia of N-able and N-central vulnerabilities CVE-2026-18556 and CVE-2026-18577. Assess exposure and apply mitigations.</description>
+  <pubDate>Wed, 19 Aug 2026 14:44:29 +1000</pubDate>
+    <dc:creator>Australian Cyber Security Centre (ACSC)</dc:creator>
+    <guid isPermaLink="true">https://www.cyber.gov.au/alert/active-exploitation-of-remote-monitoring-and-management-platform-within-australia</guid>
+    </item>
+
+  </channel>
+</rss>

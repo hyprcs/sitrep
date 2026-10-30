@@ -1,0 +1,74 @@
+{
+ "success": true,
+ "errors": [],
+ "result": {
+  "asn_info": [
+   {
+    "asn": 136557,
+    "org_name": "Host Universal Pty Ltd",
+    "country_code": "AU"
+   },
+   {
+    "asn": 206264,
+    "org_name": "Amarutu Technology Ltd",
+    "country_code": "SC"
+   }
+  ],
+  "events": [
+   {
+    "duration": 30243,
+    "event_type": 0,
+    "hijack_msgs_count": 3,
+    "hijacker_asn": 136557,
+    "hijacker_country": "AU",
+    "id": 169427,
+    "is_stale": true,
+    "max_hijack_ts": "2026-10-28T12:21:47.035",
+    "max_msg_ts": "2026-10-28T12:21:47.035",
+    "min_hijack_ts": "2026-10-28T03:57:43.773",
+    "on_going_count": 2,
+    "peer_asns": [
+     3170,
+     24940,
+     49544
+    ],
+    "peer_ip_count": 3,
+    "prefixes": [
+     "109.61.109.0/24"
+    ],
+    "tags": [
+     {
+      "name": "irr_new_origin_valid",
+      "score": -4
+     },
+     {
+      "name": "irr_old_origin_invalid",
+      "score": -2
+     },
+     {
+      "name": "rpki_new_origin_invalid",
+      "score": 8
+     },
+     {
+      "name": "rpki_old_origin_valid",
+      "score": 0
+     }
+    ],
+    "victim_asns": [
+     206264
+    ],
+    "victim_countries": [
+     "SC"
+    ],
+    "confidence_score": 2
+   }
+  ],
+  "total_monitors": 279
+ },
+ "result_info": {
+  "count": 1,
+  "total_count": 1,
+  "page": 1,
+  "per_page": 100
+ }
+}

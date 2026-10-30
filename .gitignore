@@ -1,0 +1,14 @@
+# Secrets and per-home settings: never commit
+.env
+
+# sitrep's database and other local data
+data/
+
+# Local tool settings
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/

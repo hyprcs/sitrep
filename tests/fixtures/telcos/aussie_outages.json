@@ -1,0 +1,62 @@
+[
+ {
+  "recent": {
+   "700201": {
+    "ref": 700201,
+    "title": "Network Maintenance",
+    "eta": "Completed",
+    "services": "NBN",
+    "acma_classification": null,
+    "acma_premises_affected": null,
+    "public": "",
+    "areas": [
+     "NBN CVC: Aspley (Link 5)",
+     "NBN CVC: Caboolture"
+    ],
+    "start_date": "2026-10-28T16:00:00Z",
+    "end_date": "2026-10-28T19:00:00Z",
+    "prio": "minor",
+    "recent": true,
+    "future": false
+   }
+  },
+  "current": {
+   "700301": {
+    "ref": 700301,
+    "title": "Unscheduled Outage",
+    "eta": "Awaiting Update",
+    "services": "NBN",
+    "acma_classification": null,
+    "acma_premises_affected": null,
+    "public": "",
+    "areas": [
+     "NEWMAN(6753)"
+    ],
+    "start_date": "2026-10-27T22:32:18Z",
+    "end_date": "2026-10-29T06:00:00Z",
+    "prio": "informational",
+    "recent": false,
+    "future": false
+   }
+  },
+  "future": {
+   "700401": {
+    "ref": 700401,
+    "title": "Network Maintenance",
+    "eta": "Scheduled",
+    "services": "NBN",
+    "acma_classification": null,
+    "acma_premises_affected": null,
+    "public": "",
+    "areas": [
+     "NBN CVC: Parramatta (Link 2)"
+    ],
+    "start_date": "2026-11-02T14:00:00Z",
+    "end_date": "2026-11-02T19:00:00Z",
+    "prio": "minor",
+    "recent": false,
+    "future": true
+   }
+  }
+ }
+]

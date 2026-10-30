@@ -1,0 +1,277 @@
+# sitrep settings
+# ===============
+# Everything you might want to tune lives here. After changing it, restart sitrep.
+#
+# Nothing personal belongs in this file. Values that differ per home (your router's
+# address, your ISP's name) and secrets (API tokens) go in .env, and are pulled in
+# below with ${NAME:-default}. Copy .env.example to .env to get started.
+
+log_level: INFO
+
+home:
+  # Used in plain-English messages such as "it could be your NBN line or <ISP>".
+  isp_name: "${HOME_ISP:-your ISP}"
+  # The carrier whose network your ISP runs on, marked "your network" on the dashboard.
+  # Must match one of the carrier names under carriers, below.
+  carrier: "${HOME_CARRIER:-}"
+
+# The big Australian carriers and the networks (ASNs) each runs. IODA and Cloudflare
+# Radar both watch these. Names here are what the dashboard shows.
+carriers:
+  - { name: Telstra, asns: [1221] }
+  - { name: Optus, asns: [4804, 7474] }
+  - { name: TPG group, asns: [7545, 133612, 4802] }  # TPG, Vodafone, iiNet
+  - { name: Vocus, asns: [4826] }
+  - { name: Aussie Broadband, asns: [4764] }
+
+server:
+  host: 0.0.0.0
+  port: 8080
+
+storage:
+  db_path: data/sitrep.db
+  keep_minute_counts_days: 7
+  keep_aggregates_days: 90
+  keep_sample_posts_days: 7
+
+http:
+  # Sent with every request so the services sitrep polls know who is asking.
+  # Optional: a way to contact you (an email address or a web page).
+  contact: "${SITREP_CONTACT:-}"
+  timeout_seconds: 10
+  # After a failed request, wait this long before retrying, doubling each time up to the max.
+  retry_first_seconds: 30
+  retry_max_seconds: 1800
+
+scoring:
+  evaluate_every_seconds: 30
+  # A higher overall level has to be seen this many checks in a row before it shows.
+  raise_after_checks: 2
+  # The overall level only comes back down after this many calm minutes.
+  lower_after_minutes: 15
+  # Sources that learn "normal" from history show "learning" (and can't alert) this long.
+  learning_days: 7
+  # The overall level becomes ELEVATED when at least this many categories are elevated.
+  elevated_when_categories: 2
+  # A category becomes CRITICAL when this many of its sources are elevated at the same time.
+  category_critical_when_sources_elevated:
+    social: 2
+
+# Messages to your phone when the overall level changes. See "Telegram alerts" in the README.
+alerts:
+  # Worse news is sent straight away. Better news ("all clear") waits until the level
+  # has stayed lower this long, so a flare-up that comes straight back isn't announced
+  # twice. (The overall level itself already needs 15 calm minutes to come down.)
+  all_clear_after_minutes: 30
+  # sitrep can't send anything while your internet is down. Once it's back, it tells
+  # you how long it was down, if that was at least internet_outage_min_minutes.
+  report_internet_outages: true
+  internet_outage_min_minutes: 5
+  # A link to the dashboard to put in each message, such as your NAS's Tailscale
+  # address (http://ds920:8080, say). Leave SITREP_DASHBOARD_URL empty for no link.
+  dashboard_url: "${SITREP_DASHBOARD_URL:-}"
+  telegram:
+    # Both come from .env. Telegram alerts stay off until both are set.
+    bot_token: "${TELEGRAM_BOT_TOKEN:-}"
+    chat_id: "${TELEGRAM_CHAT_ID:-}"
+
+sources:
+
+  # Local connectivity probes: tells "my line is down" apart from "the wider internet is down".
+  probes:
+    enabled: true
+    interval_seconds: 30
+    timeout_seconds: 5
+    # Rounds in a row with nothing outside answering before sitrep says
+    # "can't reach the internet" (3 rounds of 30 seconds = about 90 seconds).
+    offline_after_rounds: 3
+    # One outside check has to fail this many rounds in a row before it counts.
+    target_down_after_rounds: 2
+    router:
+      name: Home router
+      host: "${ROUTER_ADDRESS:-192.168.1.1}"
+      port: "${ROUTER_PORT:-80}"
+    tcp:
+      - { name: "Cloudflare 1.1.1.1", host: 1.1.1.1, port: 443 }
+      - { name: "Google 8.8.8.8", host: 8.8.8.8, port: 443 }
+      - { name: "Quad9 9.9.9.9", host: 9.9.9.9, port: 443 }
+    dns:
+      # Each round looks up one of these names (they take turns).
+      lookup_names: [www.google.com, www.abc.net.au, www.cloudflare.com, www.apple.com]
+      resolvers:
+        # Your router passes DNS on to your ISP, so this spots ISP DNS failures.
+        - { name: "Router (ISP DNS)", server: "${ROUTER_ADDRESS:-192.168.1.1}", isp: true }
+        - { name: "Cloudflare DNS", server: 1.1.1.1 }
+    https:
+      # Sites on different networks. Only headers are fetched (HEAD), never the page,
+      # except Cloudflare's tiny trace page, which only answers GET.
+      - { name: Google, url: "https://www.google.com/generate_204" }
+      - { name: Cloudflare, url: "https://www.cloudflare.com/cdn-cgi/trace", method: GET }
+      - { name: Apple, url: "https://captive.apple.com/hotspot-detect.html" }
+      - { name: "ABC (Akamai)", url: "https://www.abc.net.au/" }
+
+  # IODA (Georgia Tech): spots whole networks, regions or countries dropping off the
+  # internet, using routing (BGP) and active probing. Free, no key needed.
+  ioda:
+    enabled: true
+    interval_seconds: 300
+    # The last 24 hours of active probing, for the charts, fetched this often.
+    signals_every_minutes: 15
+    areas:
+      - { name: Australia, type: country, code: AU }
+      # Other states: find the code at
+      # https://api.ioda.inetintel.cc.gatech.edu/v2/entities/query?entityType=region&search=Victoria
+      - { name: NSW, type: region, code: "173" }
+    # Carriers come from the carriers list at the top of this file.
+    # The network telescope fires often on Australian networks in quiet weeks.
+    ignore_methods: [merit-nt]
+    # Australia or NSW down on 1 method is elevated; on this many it's critical.
+    area_critical_methods: 2
+    # A carrier counts as down when one of its networks is down on this many methods at once.
+    carrier_down_methods: 2
+    # This many carriers down at once is critical (one is elevated).
+    critical_when_carriers_down: 2
+
+  # Cloudflare Radar: outages Cloudflare reports, confirmed traffic anomalies, route
+  # hijacks, and traffic compared with the same time last week. Needs a free API
+  # token in .env (CLOUDFLARE_API_TOKEN); see "Cloudflare token" in the README.
+  radar:
+    enabled: true
+    interval_seconds: 600
+    api_token: "${CLOUDFLARE_API_TOKEN:-}"
+    country: AU
+    country_name: Australia
+    # Carriers come from the carriers list at the top of this file.
+    # Traffic below this share of last week, for low_traffic_minutes, is elevated...
+    traffic_elevated_below: 0.6
+    # ...and for the whole country, below this is critical.
+    country_critical_below: 0.5
+    low_traffic_minutes: 30
+    # Route hijacks of a carrier's addresses count from this confidence (Cloudflare's 0-10 scale).
+    hijack_min_confidence: 8
+    hijack_window_hours: 6
+    # Warn on the dashboard this many days before the token expires.
+    token_warn_days: 14
+
+  # ASD's ACSC: the Australian Cyber Security Centre's alerts and advisories (RSS).
+  # cyber.gov.au ignores requests named "...bot", so this source calls itself
+  # "sitrep/<version> (...; RSS reader)" instead. See the README.
+  acsc:
+    enabled: true
+    interval_seconds: 600
+    feeds:
+      - { name: Alert, url: "https://www.cyber.gov.au/rss/alerts" }
+      - { name: Advisory, url: "https://www.cyber.gov.au/rss/advisories" }
+    # An item from the last 24 hours that mentions any of these makes ACSC elevated.
+    # ACSC on its own never makes anything critical. Phrases match the start of a
+    # word, ignoring case ("telecommunication" also matches "telecommunications").
+    recent_hours: 24
+    warning_signs:
+      active exploitation:
+        - active exploitation
+        - actively exploited
+        - actively being exploited
+        - being exploited
+        - exploited in the wild
+        - exploitation in the wild
+        - ongoing exploitation
+      critical infrastructure:
+        - critical infrastructure
+        - operational technology
+        - essential service
+        - industrial control
+        - SCADA
+        - energy sector
+        - electricity
+        - water utilit
+      telecommunications:
+        - telecommunication
+        - telco
+        - mobile network
+        - internet service provider
+        - NBN
+        - Telstra
+        - Optus
+        - TPG
+        - Vodafone
+      widespread impact:
+        - widespread
+        - nationwide
+        - across Australia
+        - many Australian organisations
+        - multiple Australian organisations
+        - significant impact
+
+  # AEMO: the operator of the east-coast electricity grid (the NEM). Demand, price and
+  # market notices for your region, from AEMO's public dashboard and NEMWeb.
+  aemo:
+    enabled: true
+    interval_seconds: 300
+    # Your region: NSW1, QLD1, VIC1, SA1 or TAS1.
+    region: NSW1
+    # In your region, an actual LOR3, load shedding or a suspended market is critical;
+    # an actual LOR2, capped prices or a "significant power system event" is elevated.
+    # Elsewhere in the NEM, an actual LOR3, load shedding or a suspended market is elevated.
+    # Demand falling by this share within half an hour (two readings in a row) is
+    # elevated too. Passing clouds move NSW demand by up to about 13%.
+    demand_drop: 0.25
+    drop_hold_minutes: 60
+    # Notices from this far back are shown on the dashboard.
+    notice_hours: 24
+
+  # What the telcos themselves say. TPG and Aussie Broadband publish their outages as
+  # data, so sitrep reads them every 10 minutes; the others are links on the dashboard.
+  # These tiles are for information only and never change the overall status.
+  telcos:
+    enabled: true
+    interval_seconds: 600
+    # Your state, for "in NSW" counts.
+    state: NSW
+    tpg: true
+    aussie_broadband: true
+    # A telco is marked elevated by an unplanned outage across several states, one it
+    # rates major (or the ACMA classes as major), one affecting this many customers...
+    major_customers: 10000
+    # ...or this many unplanned outages in your state at once.
+    many_in_state: 5
+
+  # Bluesky: spikes in public posts about trouble in Sydney and Australia, from Bluesky's
+  # Jetstream service (about 2 GB a day of download). Only counts and a small sample of
+  # matching posts are kept, and a sample is deleted when its author deletes it.
+  bluesky:
+    enabled: true
+    # A post matches a group when it contains a phrase from every list. Phrases match
+    # whole words, ignoring case; end one with * to match the start of a word.
+    groups:
+      - id: sydney_incident
+        name: Sydney or NSW incident
+        all_of:
+          - [Sydney, NSW, New South Wales]
+          - [shooting, shooter, shots fired, explosion, explosions, exploded, lockdown, locked down,
+             evacuate, evacuated, evacuating, evacuation]
+      - id: telco_down
+        name: Telco down
+        all_of:
+          - [Telstra, Optus, TPG, NBN, Vodafone, iiNet, Aussie Broadband, Belong]
+          - [down, outage, outages, not working, no signal, no service, offline]
+      - id: internet_down
+        name: Internet down in Australia
+        all_of:
+          - [internet down, "internet is down", "internet's down", internet outage, internet outages,
+             no internet, internet not working]
+          - [Australia, Australian, Australians, Aussie, Sydney, NSW, New South Wales]
+      - id: cyber_attack
+        name: Cyber attack in Australia
+        all_of:
+          - [cyber attack, cyberattack, cyber-attack, cyber attacks, cyberattacks, cyber incident,
+             ransomware, data breach]
+          - [Australia, Australian, Australians, Aussie, Sydney, NSW, New South Wales]
+    # Each group is judged on the number of different people posting in this many minutes...
+    window_minutes: 5
+    # ...and spikes when that's less likely than this at the usual rate for the hour of the
+    # week (a Poisson test), with at least spike_min_people people.
+    spike_probability: 0.000001
+    spike_min_people: 5
+    baseline_weeks: 4
+    # Example posts kept per group (deleted after 7 days, or when the author deletes them).
+    samples_per_group: 20

@@ -1,0 +1,19 @@
+# sitrep. Start it with:  docker compose up -d --build
+services:
+  sitrep:
+    build: .
+    image: sitrep:local
+    container_name: sitrep
+    restart: unless-stopped
+    ports:
+      # The left number is the port on this computer. Change it if 8080 is already taken.
+      - "8080:8080"
+    # Per-home settings and secrets. Create it by copying .env.example to .env.
+    env_file: .env
+    environment:
+      TZ: Australia/Sydney
+    volumes:
+      # Edit config.yaml here, then restart the container; no rebuild needed.
+      - ./config.yaml:/app/config.yaml:ro
+      # The database lives here, so it survives updates and rebuilds.
+      - ./data:/app/data
