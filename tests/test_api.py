@@ -50,6 +50,17 @@ def test_dashboard_page_is_served_locally(client):
         assert client.get(asset).status_code == 200
 
 
+def test_page_files_are_checked_for_updates(client):
+    # After a rebuild, the new page shows on the next reload, not hours later from the browser's cache.
+    for path in ("/", "/style.css", "/app.js"):
+        assert client.get(path).headers["cache-control"] == "no-cache"
+    # Asking again with the file's tag gets a quick "not modified", so checking costs next to nothing.
+    tag = client.get("/style.css").headers["etag"]
+    again = client.get("/style.css", headers={"If-None-Match": tag})
+    assert again.status_code == 304
+    assert again.headers["cache-control"] == "no-cache"
+
+
 def test_ingest_unknown_source_is_404(client):
     assert client.post("/api/ingest/balcony", json={"sirens": 1}).status_code == 404
 

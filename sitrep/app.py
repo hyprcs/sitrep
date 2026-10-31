@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import AsyncIterator
 
 from fastapi import FastAPI
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
 from .api import router
@@ -20,6 +21,17 @@ STATIC_DIR = Path(__file__).parent / "static"
 for kind, extension in (("text/javascript", ".mjs"), ("application/x-protobuf", ".pbf"),
                         ("application/vnd.pmtiles", ".pmtiles")):
     mimetypes.add_type(kind, extension)
+
+
+class PageFiles(StaticFiles):
+    """The dashboard's own files. Browsers must check back before reusing a saved copy (a quick
+    "not modified" when nothing changed), so an updated page shows on the next reload rather than
+    hours later."""
+
+    def file_response(self, *args, **kwargs) -> Response:
+        response = super().file_response(*args, **kwargs)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
 
 
 def create_app(runtime: Runtime) -> FastAPI:
@@ -40,5 +52,5 @@ def create_app(runtime: Runtime) -> FastAPI:
     tiles.mkdir(parents=True, exist_ok=True)
     app.mount("/tiles", StaticFiles(directory=tiles), name="tiles")
     # Everything the page needs is served from here: no CDNs, so it works offline.
-    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
+    app.mount("/", PageFiles(directory=STATIC_DIR, html=True), name="static")
     return app
