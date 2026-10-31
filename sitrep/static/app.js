@@ -9,30 +9,34 @@ const STRIP_HOURS = 24;
 const STRIP_BUCKET_MINUTES = 30;
 const CHART_MAX = 1.1; // network charts run from 0 to 110% of usual
 
+// Each level is shown as a small shape in its colour (see .sdot in style.css) and this label.
 const LEVELS = {
-  normal: { label: "Normal", icon: "check" },
-  elevated: { label: "Elevated", icon: "alert" },
-  critical: { label: "Critical", icon: "critical" },
-  offline: { label: "Offline", icon: "offline" },
-  learning: { label: "Learning", icon: "learning" },
-  failing: { label: "Fetch failing", icon: "clock" },
-  frozen: { label: "Frozen", icon: "pause" },
-  watch: { label: "Dip", icon: "dip" },
-  info: { label: "Info", icon: "dots" },
-  stale: { label: "Not checked lately", icon: "clock" },
-  unknown: { label: "Starting", icon: "dots" },
+  normal: { label: "Normal" },
+  elevated: { label: "Elevated" },
+  critical: { label: "Critical" },
+  offline: { label: "Offline" },
+  learning: { label: "Learning" },
+  failing: { label: "Fetch failing" },
+  frozen: { label: "Frozen" },
+  watch: { label: "Dip" },
+  info: { label: "Info" },
+  stale: { label: "Not checked lately" },
+  unknown: { label: "Starting" },
 };
 
 const OVERALL = {
-  unknown: { label: "Starting up", icon: "dots" },
-  normal: { label: "All clear", icon: "check" },
-  elevated: { label: "Elevated", icon: "alert" },
-  critical: { label: "Critical", icon: "critical" },
-  offline: { label: "Can't reach the internet", icon: "offline" },
+  unknown: { label: "Starting up" },
+  normal: { label: "All clear" },
+  elevated: { label: "Elevated" },
+  critical: { label: "Critical" },
+  offline: { label: "Can't reach the internet" },
 };
 
+// Sources with a problem are listed first.
+const URGENCY = { critical: 0, offline: 0, elevated: 1, failing: 2, frozen: 2, stale: 2 };
+
 const FAVICON_COLOURS = {
-  unknown: "#898781", normal: "#0ca30c", elevated: "#fab219", critical: "#d03b3b", offline: "#ec835a",
+  unknown: "#82878f", normal: "#45c08a", elevated: "#f2b443", critical: "#f2575c", offline: "#f08a4b",
 };
 
 const CATEGORY_LABELS = {
@@ -44,40 +48,6 @@ const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
 const CHECK_KINDS = { router: "Router", tcp: "Network", dns: "DNS", https: "Website" };
 const CHECK_ORDER = Object.keys(CHECK_KINDS);
 
-// Icons are fixed strings written here, never data from a source.
-const ICON_PATHS = {
-  check:
-    '<circle cx="8" cy="8" r="7.2" fill="currentColor"/>' +
-    '<path d="M4.7 8.3l2.2 2.2 4.4-4.8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
-  alert:
-    '<path d="M8 1.3l6.9 12.4H1.1z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>' +
-    '<path d="M8 5.9v3.7" stroke="#0b0b0b" stroke-width="1.8" stroke-linecap="round"/>' +
-    '<circle cx="8" cy="11.9" r="1" fill="#0b0b0b"/>',
-  critical:
-    '<path d="M5.1 0.9h5.8L15.1 5.1v5.8L10.9 15.1H5.1L0.9 10.9V5.1z" fill="currentColor"/>' +
-    '<path d="M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>',
-  offline:
-    '<circle cx="8" cy="8" r="7.2" fill="currentColor"/>' +
-    '<path d="M3.9 6.7a6 6 0 0 1 8.2 0M5.6 8.7a3.4 3.4 0 0 1 4.8 0" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>' +
-    '<circle cx="8" cy="11" r="1" fill="#fff"/>' +
-    '<path d="M3.6 3.6l8.8 8.8" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>',
-  clock:
-    '<circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
-    '<path d="M8 4.6V8l2.3 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-  dots:
-    '<circle cx="3.5" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/>' +
-    '<circle cx="12.5" cy="8" r="1.5" fill="currentColor"/>',
-  learning:
-    '<circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
-    '<path d="M8 1.7A6.3 6.3 0 0 1 14.3 8H8z" fill="currentColor"/>',
-  pause:
-    '<circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
-    '<path d="M6.4 5.4v5.2M9.6 5.4v5.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
-  dip:
-    '<circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
-    '<path d="M8 4.5v6.2M5.4 8.3L8 10.9l2.6-2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
-};
-
 const app = {
   state: null,
   uptime: null,
@@ -87,6 +57,7 @@ const app = {
   serverDown: false,
   openDetails: new Set(),
   faviconLevel: null,
+  overallLevel: null,
   networksKey: null,
   networks: [],
   radarKey: null,
@@ -118,21 +89,14 @@ function h(tag, props = {}, ...children) {
   return node;
 }
 
-function icon(name, size = 16) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 16 16");
-  svg.setAttribute("width", size);
-  svg.setAttribute("height", size);
-  svg.setAttribute("aria-hidden", "true");
-  svg.classList.add("icon");
-  svg.innerHTML = ICON_PATHS[name] || ICON_PATHS.dots;
-  return svg;
+// A level's shape, in its colour. Always paired with a label, so colour is never the only clue.
+function sdot(level) {
+  return h("span", { class: `sdot lvl-${level}`, "aria-hidden": "true" });
 }
 
 function pill(level, label, small = false) {
   const info = LEVELS[level] || LEVELS.unknown;
-  return h("span", { class: `pill lvl-${level}${small ? " sm" : ""}` },
-    icon(info.icon, small ? 12 : 14), h("span", { text: label || info.label }));
+  return h("span", { class: `pill lvl-${level}${small ? " sm" : ""}` }, sdot(level), h("span", { text: label || info.label }));
 }
 
 function safeUrl(value) {
@@ -230,6 +194,7 @@ function render() {
   renderGrid(app.state.sources);
   renderFooter();
   updateTitleAndFavicon(app.state.overall.level);
+  updateChapters();
 }
 
 function renderServerBanner() {
@@ -258,8 +223,16 @@ function renderSimulation(sim) {
 
 function renderOverall(overall) {
   const info = OVERALL[overall.level] || OVERALL.unknown;
-  $("#overall").className = `hero card lvl-${overall.level}`;
-  $("#overall-icon").replaceChildren(icon(info.icon, 40));
+  const hero = $("#overall");
+  // A real change of level (not the first answer after "Starting up") fades the words back in.
+  const changed = app.overallLevel != null && app.overallLevel !== "unknown" && app.overallLevel !== overall.level;
+  app.overallLevel = overall.level;
+  hero.className = `hero lvl-${overall.level}`;
+  if (changed) {
+    void hero.offsetWidth; // so the fade restarts even if the last one ran recently
+    hero.classList.add("changed");
+  }
+  $("#brand-mark").className = `brand-mark lvl-${overall.level}`;
   $("#overall-label").textContent = info.label;
   $("#overall-reason").textContent = sentence(overall.reason);
   const meta = [];
@@ -281,20 +254,15 @@ function renderOverall(overall) {
 function renderGaps(gaps) {
   $("#gaps").hidden = !gaps.length;
   $("#gaps-list").replaceChildren(...gaps.map((gap) =>
-    h("li", { class: `gap lvl-${gap.health}` }, icon(LEVELS[gap.health]?.icon || "dots", 14),
-      h("span", { text: sentence(gap.text) }))));
+    h("li", { class: "gap" }, sdot(gap.health), h("span", { text: sentence(gap.text) }))));
 }
 
+// One cell per category. The reason is shown only when it says something other than "all normal".
 function renderCategories(categories) {
-  $("#categories").replaceChildren(...categories.map((cat) => {
-    const level = cat.level || "none";
-    return h("article", { class: `cat card lvl-${level}` },
-      h("div", { class: "cat-head" },
-        h("h3", { text: cat.label }),
-        cat.level ? pill(cat.level, null, true)
-          : h("span", { class: "pill sm lvl-none", text: cat.sources ? "No live data" : "Not set up" })),
-      h("p", { class: "cat-reason", text: sentence(cat.reason) }));
-  }));
+  $("#categories").replaceChildren(...categories.map((cat) => h("div", { class: "cat" },
+    h("span", { class: "cat-label", text: cat.label }),
+    cat.level ? pill(cat.level) : pill("none", cat.sources ? "No live data" : "Not set up"),
+    cat.level && cat.level !== "normal" ? h("p", { class: "cat-reason", text: sentence(cat.reason) }) : null)));
 }
 
 // Stories: items from official, news and social sources about one event. Triangulated ones
@@ -310,7 +278,7 @@ function storyCard(story) {
       link ? h("a", { href: link, target: "_blank", rel: "noopener noreferrer", text }) : text);
   });
   if (story.size > members.length) members.push(h("li", { class: "muted", text: `and ${story.size - members.length} more` }));
-  return h("article", { class: `story card lvl-${story.level === "normal" ? "info" : story.level}` },
+  return h("article", { class: `story lvl-${story.level === "normal" ? "info" : story.level}` },
     h("header", { class: "story-head" },
       pill(story.level === "normal" ? "info" : story.level, story.triangulated ? "Triangulated" : null, true),
       h("h3", { text: story.title })),
@@ -327,42 +295,54 @@ function renderStories(sources) {
 }
 
 function renderSources(sources) {
-  const sorted = [...sources].sort((a, b) =>
-    CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) || a.name.localeCompare(b.name));
+  $("#sources-desc").textContent = sources.length
+    ? `${sources.length} sources, each checked on its own schedule. Open one for more.`
+    : "No sources are switched on yet.";
   const box = $("#sources");
-  if (!sorted.length) {
+  if (!sources.length) {
     box.replaceChildren(h("p", { class: "empty", text: "No sources are switched on in config.yaml." }));
     return;
   }
-  box.replaceChildren(...sorted.map(sourceTile));
+  const urgency = (s) => URGENCY[s.level] ?? 3;
+  const sorted = [...sources].sort((a, b) => urgency(a) - urgency(b) ||
+    CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category) || a.name.localeCompare(b.name));
+  box.replaceChildren(...sorted.map(sourceRow));
 }
 
-function sourceTile(source) {
-  const parts = [
-    h("header", { class: "tile-head" },
-      h("div", {}, h("h3", { text: source.name }),
-        h("p", { class: "tile-cat", text: CATEGORY_LABELS[source.category] || source.category })),
-      pill(source.level)),
-    h("p", { class: "tile-reason", text: sentence(source.reason) }),
-  ];
+// One line per source. Opening it shows the whole reason, when it last updated, and any extra detail.
+function sourceRow(source) {
+  const body = [];
   if (["failing", "frozen"].includes(source.level) && source.last_success_at) {
-    parts.push(h("p", { class: "tile-lastknown" },
+    body.push(h("p", { class: "src-note" },
       "Last known:", pill(source.last_known_level, null, true), sentence(source.last_known_reason)));
   } else if (source.failures > 0) {
     const what = source.failures === 1 ? "The last attempt" : `The last ${source.failures} attempts`;
-    parts.push(h("p", { class: "tile-warn", text: `${what} failed (${source.last_error}). Retrying.` }));
+    body.push(h("p", { class: "src-note", text: `${what} failed (${source.last_error}). Retrying.` }));
   }
-  const meta = h("p", { class: "tile-meta" },
+  const meta = h("p", { class: "src-meta" }, `${CATEGORY_LABELS[source.category] || source.category} · `,
     source.last_success_at ? `Updated ${clockTime(source.last_success_at)} · ${ago(source.last_success_at)}` : "No update yet");
   const age = dataAge(source);
   if (age) meta.append(" · ", age);
   const link = safeUrl(source.link);
   if (link) meta.append(" · ", h("a", { href: link, target: "_blank", rel: "noopener noreferrer", text: "Source ↗" }));
-  parts.push(meta);
-
+  body.push(meta);
   const extra = DETAILS[source.id];
-  if (extra && source.details && Object.keys(source.details).length) parts.push(detailsBlock(source.id, extra.title, extra.render(source.details)));
-  return h("article", { class: `tile card lvl-${source.level}` }, ...parts);
+  if (extra && source.details && Object.keys(source.details).length) body.push(extra.render(source.details));
+
+  const id = `source-${source.id}`;
+  const row = h("details", { class: `src lvl-${source.level}`, open: app.openDetails.has(id) },
+    h("summary", {},
+      sdot(source.level),
+      h("span", { class: "src-name", text: source.name }),
+      h("span", { class: "src-sum", text: sentence(source.reason) }),
+      h("span", { class: "src-state", text: (LEVELS[source.level] || LEVELS.unknown).label }),
+      h("span", { class: "src-age", text: source.last_success_at ? duration(nowSeconds() - source.last_success_at) : "–" })),
+    h("div", { class: "src-body" }, ...body));
+  row.addEventListener("toggle", () => {
+    if (row.open) app.openDetails.add(id);
+    else app.openDetails.delete(id);
+  });
+  return row;
 }
 
 // How new the data inside the source's last answer was: not the same as when it was fetched.
@@ -374,7 +354,7 @@ function dataAge(source) {
 }
 
 function detailsBlock(id, title, content) {
-  const block = h("details", { class: "tile-details", open: app.openDetails.has(id) }, h("summary", { text: title }), content);
+  const block = h("details", { class: "more", open: app.openDetails.has(id) }, h("summary", { text: title }), content);
   block.addEventListener("toggle", () => {
     if (block.open) app.openDetails.add(id);
     else app.openDetails.delete(id);
@@ -382,10 +362,9 @@ function detailsBlock(id, title, content) {
   return block;
 }
 
-// Extra, source-specific detail shown under a tile.
+// Extra, source-specific detail shown when a source is opened.
 const DETAILS = {
   probes: {
-    title: "Show each check",
     render(details) {
       const checks = [...(details.checks || [])].sort((a, b) => CHECK_ORDER.indexOf(a.kind) - CHECK_ORDER.indexOf(b.kind));
       const rows = checks.map((c) => h("tr", {},
@@ -401,7 +380,6 @@ const DETAILS = {
     },
   },
   reach: {
-    title: "Show each region",
     render(details) {
       const rows = (details.regions || []).map((r) => h("tr", {},
         h("td", {}, pill(...REGION_STATES[r.state] || REGION_STATES.unknown, true)),
@@ -417,7 +395,6 @@ const DETAILS = {
 
 // NSW RFS incidents near home. "mark" is how much each matters here; "level" is the RFS's own alert level.
 DETAILS.rfs = {
-  title: "Show incidents near home",
   render(details) {
     const near = details.near || [];
     const parts = [];
@@ -442,7 +419,6 @@ DETAILS.rfs = {
 
 // Live Traffic hazards near home: unplanned or major ones, nearest first.
 DETAILS.livetraffic = {
-  title: "Show hazards near home",
   render(details) {
     const near = details.near || [];
     const parts = [];
@@ -464,7 +440,6 @@ DETAILS.livetraffic = {
 
 // Sydney Trains and Metro: unplanned disruptions now, and how much planned trackwork is on.
 DETAILS.transit = {
-  title: "Show disruptions",
   render(details) {
     const rows = (details.disruptions || []).map((a) => h("tr", {},
       h("td", {}, pill(a.widespread && a.suspension ? "elevated" : "info",
@@ -483,7 +458,6 @@ DETAILS.transit = {
 
 // BoM warnings in force: Sydney's first, then the rest of NSW.
 DETAILS.bom = {
-  title: "Show warnings",
   render(details) {
     const warnings = details.warnings || [];
     if (!warnings.length) return h("p", { class: "muted", text: "No BoM warnings in force in NSW. Data: Bureau of Meteorology." });
@@ -497,7 +471,6 @@ DETAILS.bom = {
 
 // The latest headlines, with the Sydney places they name. Links go to the outlet.
 DETAILS.news = {
-  title: "Show latest headlines",
   render(details) {
     const items = (details.headlines || []).map((n) => {
       const link = safeUrl(n.link);
@@ -514,7 +487,6 @@ DETAILS.news = {
 
 // Every story with two or more items, including ones from only one kind of source.
 DETAILS.stories = {
-  title: "Show every story",
   render(details) {
     const stories = details.stories || [];
     if (!stories.length) return h("p", { class: "muted", text: `No two items from the last ${details.window_hours} hours are about the same thing yet.` });
@@ -526,7 +498,6 @@ DETAILS.stories = {
 
 // Emerging terms: flagged ones first (suburbs before other words), then the busiest.
 DETAILS.terms = {
-  title: "Show busiest terms",
   render(details) {
     const terms = details.terms || [];
     if (!terms.length) return h("p", { class: "muted", text: "No terms counted yet." });
@@ -557,7 +528,6 @@ function outLink(url, text) {
 }
 
 DETAILS.advice = {
-  title: "Show advice and updates",
   render(details) {
     const parts = [];
     const rows = [];
@@ -596,7 +566,6 @@ DETAILS.advice = {
 
 // Cloud and CDN status: each provider's Sydney region, its incidents, and Cloudflare maintenance.
 DETAILS.cloud = {
-  title: "Show each provider",
   render(details) {
     const rows = (details.providers || []).map((p) => h("tr", {},
       h("td", {}, p.incidents.length ? pill("elevated", "Incident", true) : pill("normal", "OK", true)),
@@ -613,7 +582,6 @@ DETAILS.cloud = {
 
 // Australian ransomware victims, newest first. ransomware.live asks to be credited with a link.
 DETAILS.ransomware = {
-  title: "Show latest victims",
   render(details) {
     const victims = details.victims || [];
     const credit = h("p", { class: "muted" }, outLink(details.site, details.attribution || "Source: Ransomware.live"),
@@ -630,7 +598,6 @@ DETAILS.ransomware = {
 
 // Fuel: median prices near home and across NSW, against the last 30 days.
 DETAILS.fuel = {
-  title: "Show prices",
   render(details) {
     const cents = (v) => (v == null ? "–" : v.toFixed(1));
     const rows = (details.fuels || []).flatMap((f) => ["home", "nsw"].filter((a) => f[a]).map((a) => h("tr", {},
@@ -655,7 +622,6 @@ DETAILS.fuel = {
 
 // Aircraft over Sydney: the count against what's usual, and anything circling.
 DETAILS.adsb = {
-  title: "Show aircraft",
   render(details) {
     const parts = [h("p", {}, `${details.airborne} in the air within ${details.radius_km} km of the CBD` +
       (details.usual != null ? ` (usually ${Math.round(details.usual)} at ${details.basis})` : " (learning what's usual)") +
@@ -680,7 +646,6 @@ DETAILS.adsb = {
 
 // Convergence: areas with several kinds of event at once.
 DETAILS.convergence = {
-  title: "Show areas",
   render(details) {
     const spots = details.hotspots || [];
     if (!spots.length) return h("p", { class: "muted", text: `No area has three kinds of event in the last ${details.window_hours} hours.` });
@@ -732,13 +697,13 @@ function renderNetworks(sources) {
 
 function networkRow(entity, i) {
   const asns = (entity.asns || []).map((n) => `AS${n}`).join(", ");
-  return h("div", { class: `net lvl-${entity.level}`, "data-i": i },
+  return h("div", { class: `net lvl-${entity.level}`, "data-i": i, style: `--i:${i}` },
     h("div", { class: "net-name" },
-      h("p", {}, h("strong", { text: entity.name }), entity.home ? h("span", { class: "net-tag", text: "your network" }) : null),
+      h("p", {}, h("strong", { text: entity.name }), entity.home ? h("span", { class: "tag", text: "your network" }) : null),
       entity.detail ? h("p", { class: "net-detail", text: entity.detail })
         : asns ? h("p", { class: "net-detail muted", text: asns }) : null),
-    h("div", { class: "net-now" }, pill(entity.level, entity.label, true)),
-    networkChart(entity));
+    networkChart(entity),
+    h("div", { class: "net-now" }, pill(entity.level, entity.label, true)));
 }
 
 function svgNode(tag, attrs) {
@@ -858,11 +823,14 @@ function renderRadar(sources) {
     $("#radar-end").textContent = dayFormat.format(new Date(last * 1000));
   }
 
-  $("#radar-carriers").replaceChildren(...details.traffic.filter((t) => t.kind === "carrier").flatMap((t) => {
-    const chip = pill(t.level, t.ratio == null ? `${t.name}: no data` : `${t.name} ${percent(t.ratio)}`, true);
-    chip.title = t.ratio == null ? "" : `${t.name}'s traffic is ${percent(t.ratio)} of the same time last week`;
-    return t.home ? [chip, h("span", { class: "net-tag", text: "your network" })] : [chip];
-  }));
+  $("#radar-carriers").replaceChildren(...details.traffic.filter((t) => t.kind === "carrier").map((t) => h("div", {
+    class: `kv-item lvl-${t.level}`,
+    title: t.ratio == null ? "" : `${t.name}'s traffic is ${percent(t.ratio)} of the same time last week`,
+  },
+  h("span", { class: "kv-label", text: t.name }),
+  h("span", { class: "kv-value" }, t.ratio == null ? "No data" : percent(t.ratio),
+    t.level === "elevated" || t.level === "critical" ? sdot(t.level) : null,
+    t.home ? h("span", { class: "tag", text: "your network" }) : null))));
 
   const reports = details.reports || [];
   $("#radar-reports").replaceChildren(...(reports.length ? reports.map(radarReport)
@@ -976,13 +944,13 @@ function renderTelcos(sources) {
   app.telcosKey = key;
   const stale = !LIVE.includes(source.level);
   const cards = (details.telcos || []).map((t) => telcoCard(t, details.state, stale));
-  cards.push(h("article", { class: "card telco telco-links" },
+  cards.push(h("article", { class: "telco telco-links" },
     h("header", { class: "telco-head" }, h("h3", { text: cards.length ? "The others" : "Telco status pages" })),
     h("ul", { class: "telco-linklist" }, details.links.map((link) => {
       const url = safeUrl(link.url);
       return h("li", {},
-        url ? h("a", { href: url, target: "_blank", rel: "noopener noreferrer", text: `${link.name} ↗` }) : link.name,
-        link.tag ? h("span", { class: "net-tag", text: link.tag }) : null);
+        url ? h("a", { href: url, target: "_blank", rel: "noopener noreferrer", text: link.name }) : link.name,
+        link.tag ? h("span", { class: "tag", text: link.tag }) : null);
     })),
     h("p", { class: "telco-small", text: "These need your address, so check them yourself." })));
   $("#telcos").replaceChildren(...cards);
@@ -1000,11 +968,11 @@ function telcoCard(telco, state, stale) {
   const page = safeUrl(telco.page);
   const parts = [
     h("header", { class: "telco-head" },
-      h("h3", {}, telco.name, telco.tag ? h("span", { class: "net-tag", text: telco.tag }) : null),
+      h("h3", {}, telco.name, telco.tag ? h("span", { class: "tag", text: telco.tag }) : null),
       pill(level, label, true)),
   ];
   if (telco.error) {
-    parts.push(h("p", { class: "tile-warn", text: `The last check failed (${telco.error}). Retrying.` }));
+    parts.push(h("p", { class: "src-note", text: `The last check failed (${telco.error}). Retrying.` }));
   } else {
     parts.push(h("dl", { class: "telco-counts" },
       h("div", {}, h("dt", { text: "Unplanned outages" }),
@@ -1026,7 +994,7 @@ function telcoCard(telco, state, stale) {
     }
   }
   if (page) parts.push(h("p", { class: "telco-small" }, h("a", { href: page, target: "_blank", rel: "noopener noreferrer", text: `${telco.name}'s status page ↗` })));
-  return h("article", { class: `card telco lvl-${level}` }, ...parts);
+  return h("article", { class: `telco lvl-${level}` }, ...parts);
 }
 
 // --- On Bluesky (keyword groups from Jetstream) ---
@@ -1062,18 +1030,18 @@ function blueskyRow(group, i, sourceLevel, windowMinutes) {
     ? ` · new group, learning for ${duration(group.learning_left)} more`
     : group.usual == null ? "" : `, usually about ${group.usual.toFixed(1)}`;
   const samples = group.samples || [];
-  const row = h("div", { class: `net bluesky-row lvl-${level}`, "data-i": i },
+  const row = h("div", { class: `net bluesky-row lvl-${level}`, "data-i": i, style: `--i:${i}` },
     h("div", { class: "net-name" },
       h("p", {}, h("strong", { text: group.name })),
       h("p", { class: "net-detail", text: now + usual })),
-    h("div", { class: "net-now" }, pill(level, label, true)),
-    blueskyChart(group));
+    blueskyChart(group),
+    h("div", { class: "net-now" }, pill(level, label, true)));
   if (!samples.length) return row;
   const list = h("ul", { class: "bluesky-posts" }, samples.map((post) => {
     const link = safeUrl(post.url);
     return h("li", {},
       h("p", { class: "bluesky-text", text: post.text }),
-      h("p", { class: "telco-small" }, dateFormat.format(new Date(post.ts * 1000)),
+      h("p", { class: "small" }, dateFormat.format(new Date(post.ts * 1000)),
         link ? [" · ", h("a", { href: link, target: "_blank", rel: "noopener noreferrer", text: "on Bluesky ↗" })] : null));
   }));
   return h("div", { class: "bluesky-group" }, row,
@@ -1157,6 +1125,7 @@ function bindBlueskyTooltip() {
 // --- Latest from the ACSC ---
 
 const shortDate = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short" });
+const ACSC_SHOWN = 4; // the rest sit behind "earlier items"
 
 function renderAcsc(sources) {
   const source = sources.find((s) => s.id === "acsc");
@@ -1167,8 +1136,11 @@ function renderAcsc(sources) {
   if (key === app.acscKey) return;
   app.acscKey = key;
   $("#acsc-year").textContent = new Date().getFullYear();
-  $("#acsc-items").replaceChildren(...(items.length ? items.map(acscItem)
+  $("#acsc-items").replaceChildren(...(items.length ? items.slice(0, ACSC_SHOWN).map(acscItem)
     : [h("li", { class: "empty", text: "ACSC's feeds are empty right now." })]));
+  const earlier = items.slice(ACSC_SHOWN);
+  $("#acsc-more").replaceChildren(...(earlier.length ? [detailsBlock("acsc-more",
+    `${earlier.length} earlier ${earlier.length === 1 ? "item" : "items"}`, h("ul", { class: "acsc-items" }, earlier.map(acscItem)))] : []));
   const hours = source.details.recent_hours;
   const signs = source.details.warning_signs || [];
   $("#acsc-meta").textContent = signs.length
@@ -1215,9 +1187,11 @@ function renderGrid(sources) {
   };
   const home = conditions.filter((c) => c.home);
   const now = details.now;
+  const unit = (text) => h("span", { class: "unit", text });
   $("#grid-stats").replaceChildren(
-    gridStat("Demand", now.demand == null ? "No figure" : megawatts(now.demand)),
-    gridStat("Price", now.price == null ? "No figure" : perMWh(now.price)),
+    gridStat("Demand", now.demand == null ? "No figure" : [wholeNumber.format(now.demand), unit("MW")]),
+    gridStat("Price", now.price == null ? "No figure"
+      : [`${now.price < 0 ? "−" : ""}$${wholeNumber.format(Math.abs(now.price))}`, unit("/MWh")]),
     gridStat("Supply", home.length ? home.map((c) => chip(c, c.label)) : pill("normal", "No warnings", true)));
 
   const chart = details.chart;
@@ -1426,7 +1400,7 @@ function renderTimeline() {
   const list = $("#timeline");
   const events = (app.timeline && app.timeline.events) || [];
   if (!events.length) {
-    list.replaceChildren(h("li", { class: "empty", text: "Nothing has changed in the last 24 hours." }));
+    list.replaceChildren(h("li", { class: "empty" }, sdot("normal"), "Nothing has changed in the last 24 hours."));
     return;
   }
   const names = Object.fromEntries((app.state?.sources || []).map((s) => [s.id, s.name]));
@@ -1439,7 +1413,7 @@ function renderTimeline() {
     const link = safeUrl(event.url);
     return h("li", { class: `event lvl-${event.level}` },
       h("time", { class: "event-time", datetime: new Date(event.ts * 1000).toISOString(), text: clockTime(event.ts) }),
-      h("span", { class: "event-dot" }, icon(info.icon, 14)),
+      h("span", { class: "event-dot" }, sdot(event.level)),
       h("div", {},
         h("p", { class: "event-title" }, h("strong", { text: title }),
           isChange ? h("span", { class: "to", text: ` → ${info.label}` }) : null),
@@ -1475,21 +1449,95 @@ function updateTitleAndFavicon(level) {
   app.faviconLevel = level;
   const colour = FAVICON_COLOURS[level] || FAVICON_COLOURS.unknown;
   const svg =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#1a1a19"/>' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#121418"/>' +
     `<circle cx="16" cy="16" r="9" fill="none" stroke="${colour}" stroke-width="2.5"/>` +
     `<circle cx="16" cy="16" r="4.5" fill="${colour}"/></svg>`;
   $("#favicon").href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
+// --- Chapters, the section bar, and motion on first view ---
+
+// A chapter with nothing to show (no grid source switched on, say) is hidden, along with its link.
+function updateChapters() {
+  for (const chapter of document.querySelectorAll(".chapter")) {
+    const empty = ![...chapter.querySelectorAll(".sub")].some((sub) => !sub.hidden);
+    chapter.hidden = empty;
+    const link = $(`#nav a[href="#${chapter.id}"]`);
+    if (link) link.hidden = empty;
+  }
+  app.updateNav?.();
+}
+
+// Underlines the section being read, sliding the line across as you scroll.
+function watchSections() {
+  const nav = $("#nav");
+  const ink = $(".nav-ink");
+  const links = [...nav.querySelectorAll("a")];
+  let current = null;
+  const update = () => {
+    const shown = links.filter((link) => !link.hidden);
+    const line = innerHeight * 0.3;
+    let active = shown[0];
+    for (const link of shown) {
+      if (document.getElementById(link.hash.slice(1))?.getBoundingClientRect().top <= line) active = link;
+    }
+    // At the very bottom the last section counts, even if it's too short to reach the line.
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) active = shown.at(-1);
+    if (!active) return;
+    if (active !== current) {
+      current?.classList.remove("on");
+      current?.removeAttribute("aria-current");
+      active.classList.add("on");
+      active.setAttribute("aria-current", "location");
+      current = active;
+      if (nav.scrollWidth > nav.clientWidth) nav.scrollTo({ left: active.offsetLeft - 24, behavior: "smooth" });
+    }
+    ink.style.width = `${active.offsetWidth - 22}px`;
+    ink.style.transform = `translateX(${active.offsetLeft + 11}px)`;
+    ink.style.opacity = 1;
+  };
+  let queued = false;
+  const soon = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      update();
+    });
+  };
+  addEventListener("scroll", soon, { passive: true });
+  addEventListener("resize", soon);
+  app.updateNav = soon;
+  update();
+}
+
+// Sections rise in, and their charts draw, the first time they're scrolled into view. This starts
+// once the first data is in (or after a short wait), so there's something to draw.
+function revealOnScroll() {
+  if (!document.documentElement.classList.contains("motion")) return;
+  const seen = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      entry.target.classList.add("seen");
+      seen.unobserve(entry.target);
+    }
+  }, { rootMargin: "0px 0px -8% 0px" });
+  for (const node of document.querySelectorAll(".reveal")) seen.observe(node);
+}
+
 // --- Start ---
 
+document.documentElement.dataset.ready = "true";
 bindNetworkTooltip();
 bindRadarTooltip();
 bindGridTooltip();
 bindBlueskyTooltip();
+watchSections();
 render();
-refreshState();
-refreshSlow();
+Promise.race([
+  Promise.allSettled([refreshState(), refreshSlow()]),
+  new Promise((resolve) => setTimeout(resolve, 2500)),
+]).then(revealOnScroll);
 setInterval(refreshState, STATE_EVERY_MS);
 setInterval(refreshSlow, SLOW_EVERY_MS);
 setInterval(render, TICK_EVERY_MS);
