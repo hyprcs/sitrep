@@ -40,6 +40,8 @@ practise with.
 Docker. The Synology NAS steps are written up below but haven't been tried on a NAS yet.
 Wikipedia was planned as a second social source but isn't included
 ([why](#wikipedia-not-included)).
+Planned next, designed but not built: a MeshCore source and a plain-English brief from a
+local model ([the design](docs/design-mesh-and-brief.md)).
 
 **Contents:**
 [How it decides](#how-it-decides-the-overall-status) ·
