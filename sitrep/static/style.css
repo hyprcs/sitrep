@@ -287,12 +287,12 @@ body.disconnected .page { opacity: 0.6; filter: saturate(0.4); }
 }
 .orb-wave { inset: 0; box-shadow: inset 0 0 0 1px var(--lvl); opacity: 0; }
 
-/* --- Categories: one thin row of cells with hairlines between --- */
+/* --- Categories: even rows of cells with hairlines between (app.js sets --cols) --- */
 
 .cats {
   --pad: 24px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
   margin: 0 calc(-1 * var(--pad));
   border-bottom: 1px solid var(--line);
   clip-path: inset(-1px var(--pad) 0);
@@ -897,7 +897,7 @@ body.disconnected .page { opacity: 0.6; filter: saturate(0.4); }
   .hero { grid-template-columns: minmax(0, 1fr); padding: 56px 0 44px; }
   .orb { position: absolute; top: 36px; right: -6px; width: 112px; height: 112px; opacity: 0.8; }
   .hero-reason { max-width: none; }
-  .cats { --pad: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); }
+  .cats { --pad: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .chapter { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 72px; }
   .ch-side { position: static; }
   .ch-title { font-size: 24px; }

@@ -259,6 +259,9 @@ function renderGaps(gaps) {
 
 // One cell per category. The reason is shown only when it says something other than "all normal".
 function renderCategories(categories) {
+  // At most 5 across, with the rows as even as possible: 8 categories make 4 + 4, not 5 + 3.
+  const rows = Math.ceil(categories.length / 5) || 1;
+  $("#categories").style.setProperty("--cols", Math.ceil(categories.length / rows) || 1);
   $("#categories").replaceChildren(...categories.map((cat) => h("div", { class: "cat" },
     h("span", { class: "cat-label", text: cat.label }),
     cat.level ? pill(cat.level) : pill("none", cat.sources ? "No live data" : "Not set up"),
