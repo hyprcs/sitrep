@@ -18,6 +18,18 @@ How it's judged:
   and is at least a handful of people. A spike makes Bluesky elevated.
 - Bluesky on its own never makes sitrep critical: the social category only goes
   critical when two social sources spike at the same time.
+- Each group says what its spikes are about (its scope): "telco down" and "internet
+  down" are national internet trouble, "cyber attack" is national cyber trouble, and
+  "Sydney incident" is about Sydney as a whole. Another category only backs up a
+  spike when it's about the same kind of thing.
+- A spike first noticed while sitrep is catching up on old posts (more than 15
+  minutes behind) shows on the dashboard, but can't raise an alert.
+- If the newest post sitrep has read is more than 5 minutes old, the stream has
+  frozen (or sitrep is still catching up), and the source shows as frozen.
+
+For story clusters, sitrep also keeps the last 6 hours of posts that name a Sydney suburb
+or Sydney as a whole, in memory only (never saved), and drops a post as soon as its author
+deletes it. A saved story records "a Bluesky post", never its text, link or author.
 
 If the connection drops, sitrep picks up where it left off (Jetstream keeps about a
 day), so no posts are missed. After a break of more than two hours it starts from now,
@@ -30,17 +42,22 @@ import json
 import math
 import re
 import time
-from dataclasses import dataclass, field
+from collections import deque
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from typing import Any
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from websockets.asyncio.client import connect
 from websockets.exceptions import InvalidStatus
 from websockets.typing import Subprotocol
 
 from ..config import Settings
-from ..models import Assessment, Category, Level
+from ..geo import cell_of
+from ..models import SYDNEY, Assessment, Category, Level, Signal, valid_scope
+from ..places import gazetteer
+from ..stories import WINDOW_HOURS, Member, words
+from ..terms import blocklist_of, record, who_code
 from ..util import format_duration
 from .base import AdapterContext, SourceError, StreamingAdapter, StreamingSettings
 
@@ -55,6 +72,15 @@ class KeywordGroup(Settings):
     # A post matches when it contains at least one phrase from every list. Phrases match
     # whole words, ignoring case; end one with * to match the start of a word ("evacuat*").
     all_of: list[list[str]] = Field(min_length=1)
+    # What a spike is about: national:internet, national:cyber, ..., or sydney.
+    scope: str = SYDNEY
+
+    @field_validator("scope")
+    @classmethod
+    def _scope_is_known(cls, value: str) -> str:
+        if not valid_scope(value) or value.startswith(("area:", "cluster:")):
+            raise ValueError("scope must be sydney or national:<theme> (internet, cyber, power, fuel or security)")
+        return value
 
 
 AUSTRALIA = ["Australia", "Australian", "Australians", "Aussie", "Sydney", "NSW", "New South Wales"]
@@ -68,6 +94,7 @@ DEFAULT_GROUPS = [
             ["shooting", "shooter", "shots fired", "explosion", "explosions", "exploded", "lockdown",
              "locked down", "evacuate", "evacuated", "evacuating", "evacuation"],
         ],
+        "scope": "sydney",
     },
     {
         "id": "telco_down",
@@ -76,6 +103,7 @@ DEFAULT_GROUPS = [
             ["Telstra", "Optus", "TPG", "NBN", "Vodafone", "iiNet", "Aussie Broadband", "Belong"],
             ["down", "outage", "outages", "not working", "no signal", "no service", "offline"],
         ],
+        "scope": "national:internet",
     },
     {
         "id": "internet_down",
@@ -85,6 +113,7 @@ DEFAULT_GROUPS = [
              "no internet", "internet not working"],
             AUSTRALIA,
         ],
+        "scope": "national:internet",
     },
     {
         "id": "cyber_attack",
@@ -94,6 +123,7 @@ DEFAULT_GROUPS = [
              "ransomware", "data breach"],
             AUSTRALIA,
         ],
+        "scope": "national:cyber",
     },
 ]
 
@@ -265,7 +295,9 @@ def _people(n: int) -> str:
 
 def assess(
     views: list[GroupView], s: BlueskySettings, *, learning_left: float, behind: float, posts_per_second: float | None,
+    alertable: dict[str, bool] | None = None,
 ) -> Assessment:
+    """alertable says, per group, whether its spike was first seen soon enough to alert on."""
     window = f"{s.window_minutes} minutes"
     spikes = [v for v in views if v.spike]
     if learning_left > 0:
@@ -298,7 +330,14 @@ def assess(
         "behind": behind,
         "posts_per_second": posts_per_second,
     }
-    return Assessment(level, reason, details)
+    scopes = {g.id: g.scope for g in s.groups}
+    signals = tuple(
+        Signal(f"bluesky:{v.id}", Level.ELEVATED, (scopes.get(v.id, SYDNEY),),
+               title=f"Spike in Bluesky posts about {v.name.lower()}: {_people(v.people)} in {window}",
+               alertable=(alertable or {}).get(v.id, True))
+        for v in spikes
+    ) if level == Level.ELEVATED else ()
+    return Assessment(level, reason, details, signals=signals)
 
 
 # --- The adapter ---
@@ -317,6 +356,9 @@ class BlueskyAdapter(StreamingAdapter):
     category = Category.SOCIAL
     link = "https://bsky.app/"
     Settings = BlueskySettings
+    source_type = "social"
+    # Jetstream sends about 25 posts a second, so the newest one is never more than seconds old.
+    content_budget_minutes = 5
     settings: BlueskySettings
 
     # Minutes are counted this long after they end, in case events arrive a little late.
@@ -332,6 +374,10 @@ class BlueskyAdapter(StreamingAdapter):
         self._position: float | None = None  # time of the latest event read
         self._assessed_at = float("-inf")
         self._spiking: set[str] = set()
+        self._spike_alertable: dict[str, bool] = {}  # group -> could its current spike alert?
+        # Recent posts about Sydney places, for story clusters: (author, member). Memory only.
+        self._recent: deque[tuple[str, Member]] = deque(maxlen=5000)
+        self._blocklist = blocklist_of(ctx.config.terms)
         self._uris, self._authors = ctx.db.sample_keys(self.id)
         saved = ctx.db.kv_get(self._cursor_key)
         self._cursor: dict[str, float] | None = json.loads(saved) if saved else None
@@ -392,16 +438,58 @@ class BlueskyAdapter(StreamingAdapter):
             for gid in matching_groups(message.post.match_text, self._compiled):
                 minute.people.setdefault(gid, set()).add(message.post.author)
                 self._keep_sample(gid, message.post)
-        elif message.kind == "delete" and message.uri in self._uris:
-            self.ctx.db.delete_samples(self.id, uri=message.uri)
-            self._uris.discard(message.uri)
-        elif message.kind == "gone" and message.author in self._authors:
-            self.ctx.db.delete_samples(self.id, author=message.author)
-            self._authors.discard(message.author)
+            self._remember_for_stories(message.post)
+        elif message.kind == "delete":
+            if message.uri in self._uris:
+                self.ctx.db.delete_samples(self.id, uri=message.uri)
+                self._uris.discard(message.uri)
+            self._forget_for_stories(lambda author, m: m.key == f"{self.id}:{message.uri}")
+        elif message.kind == "gone":
+            if message.author in self._authors:
+                self.ctx.db.delete_samples(self.id, author=message.author)
+                self._authors.discard(message.author)
+            self._forget_for_stories(lambda author, m: author == message.author)
         elif message.kind == "info":
             self.log.info("Jetstream says %s", message.info)
 
         self._settle()
+
+    def _remember_for_stories(self, post: Post) -> None:
+        """Keep a post that names a Sydney suburb, or Sydney itself, for story clusters."""
+        places = gazetteer()
+        found = places.find(post.text, strict=True)
+        local = next((p for p in found if p.sydney), None)
+        if local is None and not places.sydney_wide(post.text):
+            return
+        fresh = self.ctx.clock() - post.time <= self.recency_limit
+        self._recent.append((post.author, Member(
+            key=f"{self.id}:{post.uri}", source=self.id, source_name=self.name, source_type="social",
+            category=self.category, title=post.text[:300], at=post.time, url=post.url,
+            words=words(post.text, [p.name for p in found]), place=local.name if local else None,
+            cell=cell_of(local.lat, local.lon) if local else None, sydney_wide=local is None, notable=True,
+            emergency=False, alertable=fresh,
+            lat=local.lat if local else None, lon=local.lon if local else None,
+        )))
+        if self.ctx.config.terms.enabled:
+            # Only the terms are counted, with a one-way code for the account: no text, no handle.
+            record(self.ctx.db, post.text, at=post.time, kind="social", who=who_code(post.author), fresh=fresh,
+                   blocklist=self._blocklist)
+
+    def _forget_for_stories(self, gone) -> None:
+        if any(gone(author, m) for author, m in self._recent):
+            self._recent = deque(((a, m) for a, m in self._recent if not gone(a, m)), maxlen=self._recent.maxlen)
+
+    def recent_posts(self, since: float) -> list[Member]:
+        """Posts about Sydney places since a time, for story clusters (oldest dropped after 6 hours)."""
+        horizon = self.ctx.clock() - WINDOW_HOURS * 3600
+        while self._recent and self._recent[0][1].at < horizon:
+            self._recent.popleft()
+        return [m for _, m in self._recent if m.at >= since]
+
+    def recent_mentions(self, since: float) -> list[tuple[str, Member]]:
+        """Like recent_posts, with a one-way code for each post's author, to count different people."""
+        self.recent_posts(since)  # drops posts older than 6 hours
+        return [(who_code(author), m) for author, m in self._recent if m.at >= since]
 
     def _keep_sample(self, gid: str, post: Post) -> None:
         if not self.settings.samples_per_group:
@@ -471,10 +559,22 @@ class BlueskyAdapter(StreamingAdapter):
             views.append(view)
         posts = [(t, v) for t, v in db.counts_since(self.id, "_posts", upto - 300) if t < upto]
         rate = sum(v for _, v in posts) / (60 * len(posts)) if posts else None
-        result = assess(views, s, learning_left=learning_left, behind=max(0.0, now - upto), posts_per_second=rate)
+        self._note_spikes(views, upto, now)
+        result = assess(views, s, learning_left=learning_left, behind=max(0.0, now - upto), posts_per_second=rate,
+                        alertable=self._spike_alertable)
         if result.level != Level.LEARNING:
             self._add_to_timeline(views, upto)
-        return result
+        return replace(result, content_at=self._position)
+
+    def _note_spikes(self, views: list[GroupView], upto: float, now: float) -> None:
+        """Remember each new spike, and whether it was new enough when noticed to alert on."""
+        spiking = {v.id: v for v in views if v.spike}
+        for gid, view in spiking.items():
+            if gid not in self._spike_alertable:
+                seen = self.see_item(f"spike:{gid}:{int(upto)}", upto, level=Level.ELEVATED.value, now=now,
+                                     title=f"Spike in posts about {view.name.lower()}: {_people(view.people)}")
+                self._spike_alertable[gid] = seen.alertable
+        self._spike_alertable = {g: a for g, a in self._spike_alertable.items() if g in spiking}
 
     def _add_to_timeline(self, views: list[GroupView], upto: float) -> None:
         for view in views:

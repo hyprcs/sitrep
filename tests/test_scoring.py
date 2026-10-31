@@ -3,19 +3,23 @@
 from __future__ import annotations
 
 from sitrep.config import ScoringSettings
-from sitrep.models import INTERNET_DOWN, Category, Level, Overall
+from sitrep.models import INTERNET_DOWN, Category, Level, Overall, Signal
 from sitrep.scoring import OverallResult, OverallTracker, score_categories, score_overall
 from sitrep.state import SourceView
 
 CFG = ScoringSettings()
 
 
-def view(source_id: str, category: Category, level: Level, reason: str = "something", flags=()) -> SourceView:
+def view(source_id: str, category: Category, level: Level, reason: str = "something", flags=(),
+         scope: str = "national:internet", alertable: bool = True) -> SourceView:
+    signals = ()
+    if level in (Level.ELEVATED, Level.CRITICAL):
+        signals = (Signal(source_id, level, (scope,), title=reason, alertable=alertable),)
     return SourceView(
         id=source_id, name=source_id.title(), category=category, link=None, level=level,
         reason=reason, flags=frozenset(flags), details={}, last_known_level=level,
         last_known_reason=reason, observed_at=0, last_success_at=0, last_attempt_at=0,
-        last_error=None, failures=0,
+        last_error=None, failures=0, signals=signals,
     )
 
 
@@ -41,7 +45,8 @@ def test_category_takes_its_worst_live_source():
 def test_stale_and_learning_sources_do_not_count():
     cats = score_categories(
         [
-            view("ioda", Category.NETWORK, Level.STALE),
+            view("ioda", Category.NETWORK, Level.FAILING),
+            view("radar", Category.NETWORK, Level.FROZEN),
             view("jetstream", Category.SOCIAL, Level.LEARNING),
         ],
         CFG,

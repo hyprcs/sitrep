@@ -34,12 +34,13 @@ def make_board(db, clock):
 # --- Status board ---
 
 
-def test_new_source_is_pending_then_stale(db):
+def test_new_source_is_learning_then_failing(db):
     clock = Clock()
     board = make_board(db, clock)
-    assert board.views()[0].level == Level.PENDING
+    assert board.views()[0].level == Level.LEARNING
+    assert board.views()[0].health == "learning"
     clock.now += 121
-    assert board.views()[0].level == Level.STALE
+    assert board.views()[0].level == Level.FAILING
     assert board.views()[0].reason == "No successful update yet"
 
 
@@ -52,11 +53,13 @@ def test_report_then_go_stale_keeps_last_known(db):
     clock.now += 200
     board.report_failure("probes", "timed out")
     stale = board.views()[0]
-    assert stale.level == Level.STALE
+    assert stale.level == Level.FAILING
+    assert stale.health == "failing"
     assert stale.reason == "No update for 3 minutes (last error: timed out)"
     assert stale.last_known_level == Level.ELEVATED
     assert stale.last_known_reason == "Google failing"
     assert stale.flags == frozenset()  # stale data can't raise alarms
+    assert stale.signals == ()
 
 
 def test_last_known_state_survives_a_restart(db):
@@ -67,7 +70,7 @@ def test_last_known_state_survives_a_restart(db):
     assert view.level == Level.NORMAL
     assert view.reason == "All good"
     clock.now += 500
-    assert restarted.views()[0].level == Level.STALE
+    assert restarted.views()[0].level == Level.FAILING
 
 
 # --- Database ---

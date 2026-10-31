@@ -29,7 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime
 from typing import Any
 
@@ -380,6 +380,7 @@ class TelcosAdapter(PollingAdapter):
             feeds.append(("Aussie Broadband", s.aussie_page, self.fetch_aussie()))
         results = await asyncio.gather(*(fetch for _, _, fetch in feeds), return_exceptions=True)
         statuses = []
+        starts: list[float] = []
         for (name, page, _), result in zip(feeds, results):
             if isinstance(result, BaseException):
                 if isinstance(result, asyncio.CancelledError):
@@ -389,10 +390,13 @@ class TelcosAdapter(PollingAdapter):
             else:
                 statuses.append(judge(name, page, result, s, now))
                 self._add_to_timeline(result, now)
+                starts += [o.since for o in result if o.since is not None and o.since <= now + 600]
         assessment = assess(statuses, self._links, s)
         for telco in assessment.details["telcos"]:
             telco["tag"] = self._tags.get(telco["name"])
-        return assessment
+        # The newest outage start is the only date in the telcos' data. They can go weeks
+        # without a new outage, so there's no content-age budget (see config.yaml).
+        return replace(assessment, content_at=max(starts, default=None))
 
     def _add_to_timeline(self, outages: list[Outage], now: float) -> None:
         """Put each widespread unplanned outage on the timeline once, from when it started."""

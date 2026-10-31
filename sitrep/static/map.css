@@ -1,0 +1,97 @@
+/* The map page: a full-screen map under a slim bar. Colours come from style.css. */
+
+body.map-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.map-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.map-bar .brand { color: var(--ink); text-decoration: none; }
+.map-status {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.map-back { font-size: 14px; white-space: nowrap; }
+
+.map-note {
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--warning) 18%, var(--surface));
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.map-note code { font-size: 12px; }
+
+.map { position: relative; flex: 1; min-height: 0; background: var(--page); }
+
+.map-legend {
+  position: absolute;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: 28px;
+  z-index: 2;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 10px 12px;
+  font-size: 12px;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+}
+.map-legend ul { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.map-legend li { display: flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.legend-title {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.legend-counts { margin-top: 6px; color: var(--muted); }
+
+.dot { flex: none; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #0d0d0d; }
+.dot-home { background: transparent; border: 3px solid var(--ink); }
+.dot-critical { background: var(--critical); }
+.dot-elevated { background: var(--warning); }
+.dot-watch { background: var(--serious); }
+.dot-info { background: var(--muted); }
+.dot-road { background: var(--muted); border-color: var(--link); }
+.dot-news { background: var(--muted); border-color: var(--ink); }
+.dot-aircraft { background: var(--muted); border-color: #b58cf2; }
+.dot-convergence { width: 16px; height: 16px; background: color-mix(in srgb, var(--warning) 35%, transparent); border-color: var(--warning); }
+.dot-story { width: 16px; height: 16px; background: var(--warning); border-color: var(--ink); }
+
+/* Popups, in the dashboard's dark style. */
+.maplibregl-popup-content {
+  background: var(--surface-raised);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: 13px/1.45 var(--font);
+  max-width: 280px;
+}
+.maplibregl-popup-tip { display: none; }
+.maplibregl-popup-close-button { color: var(--ink-2); font-size: 18px; padding: 0 6px; }
+.popup-title { font-weight: 600; margin-bottom: 2px; padding-right: 14px; }
+.popup-line { color: var(--ink-2); }
+.maplibregl-ctrl-attrib { background: rgba(13, 13, 13, 0.7) !important; color: var(--ink-2); }
+.maplibregl-ctrl-attrib a { color: var(--link); }
+
+@media (max-width: 560px) {
+  .map-legend li:nth-child(n+4) { display: none; }  /* keep the legend small on a phone */
+  .map-legend { bottom: 36px; }  /* clear of the credits */
+  .maplibregl-ctrl-scale { display: none; }  /* no room beside the legend */
+  .map-status { font-size: 12px; }
+}

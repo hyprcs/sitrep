@@ -28,7 +28,7 @@ import ssl
 import statistics
 import time
 from collections import deque
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any, Sequence
 
 import certifi
@@ -42,7 +42,7 @@ import httpx
 from pydantic import Field
 
 from ..config import Settings
-from ..models import INTERNET_DOWN, OFFLINE_HEADLINE, ROUTER_DOWN, Assessment, Category, Level
+from ..models import INTERNET_DOWN, OFFLINE_HEADLINE, ROUTER_DOWN, Assessment, Category, Level, national
 from ..util import format_duration
 from .base import AdapterContext, PollingAdapter, PollingSettings
 
@@ -266,6 +266,7 @@ class ProbesAdapter(PollingAdapter):
     id = "probes"
     name = "Your connection"
     category = Category.CONNECTIVITY
+    scope = national("internet")
     Settings = ProbeSettings
     settings: ProbeSettings
 
@@ -285,7 +286,8 @@ class ProbesAdapter(PollingAdapter):
         rnd = await self.run_round()
         self.history.append(rnd)
         self._record(rnd)
-        return assess(self.history, self.settings, self.ctx.config.home.isp_name)
+        result = assess(self.history, self.settings, self.ctx.config.home.isp_name)
+        return replace(result, content_at=rnd.ts)
 
     async def run_round(self) -> Round:
         s = self.settings

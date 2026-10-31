@@ -2,7 +2,7 @@
 .env
 
 # sitrep's database and other local data
-data/
+/data/
 
 # Local tool settings
 .claude/

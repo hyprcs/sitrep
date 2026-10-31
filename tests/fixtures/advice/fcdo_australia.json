@@ -1,0 +1,81 @@
+{
+ "title": "Australia travel advice",
+ "base_path": "/foreign-travel-advice/australia",
+ "public_updated_at": "2026-03-19T14:06:09+00:00",
+ "updated_at": "2026-10-30T16:30:54+00:00",
+ "details": {
+  "alert_status": [],
+  "parts": [
+   {
+    "title": "Warnings and insurance",
+    "slug": "warnings-and-insurance"
+   },
+   {
+    "title": "Entry requirements",
+    "slug": "entry-requirements"
+   },
+   {
+    "title": "Safety and security",
+    "slug": "safety-and-security"
+   },
+   {
+    "title": "Health",
+    "slug": "health"
+   },
+   {
+    "title": "Getting help",
+    "slug": "getting-help"
+   }
+  ],
+  "change_history": [
+   {
+    "note": "Updated information about global travel impacts due to escalation in the Middle East (‘Warnings and insurance’ page).",
+    "public_timestamp": "2026-03-19T14:06:09Z"
+   },
+   {
+    "note": "New information about travel disruption ('Warnings and insurance' page).\r\n ",
+    "public_timestamp": "2026-03-06T14:58:41Z"
+   },
+   {
+    "note": "Information about the terrorist attack at Bondi Beach in December 2025 (‘Safety and security’ page).",
+    "public_timestamp": "2026-01-27T16:48:53Z"
+   },
+   {
+    "note": "Update on terrorist attack at Bondi Beach ('Warnings and insurance' page).",
+    "public_timestamp": "2025-12-16T07:18:57Z"
+   },
+   {
+    "note": "Update on shooting in Bondi Beach ('Warnings and insurance' page).",
+    "public_timestamp": "2025-12-14T21:35:29Z"
+   },
+   {
+    "note": "Information about a shooting in Bondi Beach, Sydney (Warnings and Insurance)",
+    "public_timestamp": "2025-12-14T13:28:56Z"
+   },
+   {
+    "note": "New information about dual nationals returning to the UK (‘Entry requirements’ page).",
+    "public_timestamp": "2025-12-10T12:35:46Z"
+   },
+   {
+    "note": "Information about a higher risk of bushfires during the spring and summer seasons, from October to February ('Warnings and insurance' page).",
+    "public_timestamp": "2025-11-21T13:48:48Z"
+   },
+   {
+    "note": "Updated information on bushfires and cyclone Alfred ('Safety and security' page). ",
+    "public_timestamp": "2025-04-11T15:17:24Z"
+   },
+   {
+    "note": "Updated information on health risks in Australia (‘Health’ page).\r\n\r\n",
+    "public_timestamp": "2025-03-28T09:55:49Z"
+   },
+   {
+    "note": "Updated information about Ex-Tropical Cyclone Alfred ('Warnings and insurance' page).",
+    "public_timestamp": "2025-03-08T01:45:38Z"
+   },
+   {
+    "note": "Updated information about tropical cyclone Alfred ('Warnings and insurance' page).",
+    "public_timestamp": "2025-03-06T14:49:18Z"
+   }
+  ]
+ }
+}

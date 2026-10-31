@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0d0d0d">
+  <title>sitrep · Map</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css">
+  <link rel="stylesheet" href="map.css">
+  <!-- Everything is served by sitrep itself, so the map works with no internet. -->
+  <script src="vendor/pmtiles/pmtiles.js"></script>
+  <script src="vendor/basemaps/basemaps.js"></script>
+  <script type="module" src="map.js"></script>
+</head>
+<body class="map-page">
+  <header class="map-bar">
+    <a class="brand" href="./">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">sitrep</span>
+      <span class="brand-sub">Map</span>
+    </a>
+    <p id="map-status" class="map-status" role="status">Loading&hellip;</p>
+    <a class="map-back" href="./">Dashboard</a>
+  </header>
+  <div id="map-note" class="map-note" hidden></div>
+  <main id="map" class="map" aria-label="Map of Greater Sydney with incidents and home"></main>
+  <aside class="map-legend card" aria-label="Legend">
+    <p class="legend-title">On the map</p>
+    <ul>
+      <li><span class="dot dot-home"></span>Home</li>
+      <li><span class="dot dot-critical"></span>Critical here (an Emergency Warning near home)</li>
+      <li><span class="dot dot-elevated"></span>Elevated here</li>
+      <li><span class="dot dot-watch"></span>Notable: a major road hazard, or a fire warning further away</li>
+      <li><span class="dot dot-info"></span>Other incidents</li>
+      <li><span class="dot dot-road"></span>Blue outline: a road hazard (Live Traffic)</li>
+      <li><span class="dot dot-news"></span>White outline: a news story naming a suburb</li>
+      <li><span class="dot dot-story"></span>Large dot: a story from more than one kind of source</li>
+      <li><span class="dot dot-aircraft"></span>Purple outline: an aircraft circling (often police or news)</li>
+      <li><span class="dot dot-convergence"></span>Shaded circle: several kinds of event in one area</li>
+    </ul>
+    <p id="legend-counts" class="legend-counts"></p>
+  </aside>
+</body>
+</html>

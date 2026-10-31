@@ -24,8 +24,14 @@ def test_healthz(client):
 def test_state_with_no_sources(client):
     state = client.get("/api/state").json()
     assert state["overall"]["level"] == "unknown"
-    assert [c["id"] for c in state["categories"]] == ["connectivity", "network", "official", "social"]
-    assert state["sources"] == []
+    assert [c["id"] for c in state["categories"]] == [
+        "connectivity", "network", "official", "cyber", "news", "social", "stress", "sensors",
+    ]
+    # Worked out inside sitrep from the other sources, so always there.
+    assert [s["id"] for s in state["sources"]] == ["stories", "convergence", "terms"]
+    # Emerging terms need a week of history, which is a blind spot until then.
+    assert [g["id"] for g in state["gaps"]] == ["terms"]
+    assert state["gaps"][0]["text"].startswith("Emerging terms: Learning what's usual: 7 days to go")
 
 
 def test_timeline_and_uptime(client):

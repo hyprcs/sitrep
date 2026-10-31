@@ -29,14 +29,14 @@ Needs a free API token in .env (CLOUDFLARE_API_TOKEN); see the README.
 from __future__ import annotations
 
 import asyncio
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import Field, SecretStr
 
 from ..config import Carrier
-from ..models import Assessment, Category, Level
+from ..models import Assessment, Category, Level, national
 from ..util import format_duration
 from .base import AdapterContext, PollingAdapter, PollingSettings, SourceError, retry_after_seconds
 
@@ -394,6 +394,9 @@ class RadarAdapter(PollingAdapter):
     link = "https://radar.cloudflare.com/au"
     Settings = RadarSettings
     uses_carriers = True
+    scope = national("internet")
+    # Radar's 15-minute traffic figures usually lag by up to an hour.
+    content_budget_minutes = 180
     settings: RadarSettings
 
     def __init__(self, ctx: AdapterContext, settings: RadarSettings) -> None:
@@ -483,8 +486,10 @@ class RadarAdapter(PollingAdapter):
             "token_expires": self._token_expires,
         }
         assessment = assess(reports, hijacks, traffic, s, now, extra)
+        newest = [t.latest()[1] for t in traffic_answers]
+        assessment = replace(assessment, content_at=max(filter(None, newest), default=None))
         if self._token_expires and self._token_expires - now < s.token_warn_days * 86400:
             when = datetime.fromtimestamp(self._token_expires).strftime("%d %b %Y")
             note = f"Your Cloudflare token expires on {when}, so make a new one soon. {TOKEN_HELP}"
-            assessment = Assessment(assessment.level, f"{assessment.reason}. {note}", assessment.details)
+            assessment = replace(assessment, reason=f"{assessment.reason}. {note}")
         return assessment

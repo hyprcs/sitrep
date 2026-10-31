@@ -173,6 +173,19 @@ def test_reasons():
     assert behind.reason.startswith("Catching up after a break (30 minutes behind).")
 
 
+def test_spikes_carry_their_groups_scope_and_whether_they_can_alert():
+    spike = assess([view(people=34, usual=2.0, spike=True)], SETTINGS, learning_left=0, behind=1800,
+                   posts_per_second=25, alertable={"telco_down": False})
+    (signal,) = spike.signals
+    assert (signal.key, signal.scopes, signal.alertable) == ("bluesky:telco_down", ("national:internet",), False)
+
+
+def test_a_group_scope_must_be_sydney_or_national():
+    assert KeywordGroup(id="x", name="X", all_of=[["a"]], scope="national:power").scope == "national:power"
+    with pytest.raises(ValueError, match="scope must be"):
+        KeywordGroup(id="x", name="X", all_of=[["a"]], scope="area:1,2")
+
+
 def test_shipped_config_is_valid():
     cfg = load_config(Path(__file__).parent.parent / "config.yaml", env_file=None)
     bluesky = next(s for cls, s in build_adapter_specs(cfg) if cls.id == "bluesky")

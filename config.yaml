@@ -14,6 +14,13 @@ home:
   # The carrier whose network your ISP runs on, marked "your network" on the dashboard.
   # Must match one of the carrier names under carriers, below.
   carrier: "${HOME_CARRIER:-}"
+  # Where home is, for "how far away" and the map. The default is the middle of
+  # Macquarie Park (the ABS suburb point). To use your exact spot, set HOME_LAT and
+  # HOME_LON in .env instead of here, so it never ends up on GitHub.
+  location:
+    name: "${HOME_PLACE:-Macquarie Park}"
+    lat: "${HOME_LAT:--33.77878}"
+    lon: "${HOME_LON:-151.12425}"
 
 # The big Australian carriers and the networks (ASNs) each runs. IODA and Cloudflare
 # Radar both watch these. Names here are what the dashboard shows.
@@ -28,11 +35,57 @@ server:
   host: 0.0.0.0
   port: 8080
 
+# The map page (click Map on the dashboard). Its streets come from a basemap file you
+# download once with:  python -m sitrep map   (about 40 MB, from Protomaps' daily
+# OpenStreetMap build). Without it, the map shows incidents on a plain background.
+map:
+  tiles_path: data/map/sydney.pmtiles
+  # The area to download: west, south, east, north. This covers Greater Sydney, from the
+  # Blue Mountains to the Central Coast.
+  bbox: [149.97, -34.34, 151.64, -32.99]
+  # 14 shows every street. Each extra level roughly doubles the size.
+  max_zoom: 14
+
+# Emerging terms: words and two-word phrases suddenly much busier than usual in headlines
+# and Bluesky posts about Sydney or NSW. Catches what the keyword groups don't list. Only
+# terms and counts are kept (a Bluesky account is counted by a one-way code, never its
+# handle). A flagged term can make news or social elevated, never critical.
+terms:
+  enabled: true
+  # A term is flagged when, over the last window_hours, it has more than min_mentions
+  # mentions, more than ratio times its usual (from the last baseline_days days), from at
+  # least min_sources different outlets or accounts, and it wasn't flagged in the last
+  # repeat_minutes.
+  window_hours: 2
+  min_mentions: 5
+  ratio: 3
+  baseline_days: 7
+  min_sources: 2
+  repeat_minutes: 30
+  # Words never to treat as terms, on top of everyday English ones. Add any that keep
+  # coming up without meaning anything.
+  stopwords: [sydney, nsw, new south wales, australia, australian, australians, aussie, people, today,
+              tonight, week, news, says, said, just, like, going, really, know, think, good, great, time,
+              year, years, day, days, back, want]
+
+# Geographic convergence: several kinds of event (fire, road hazard, train disruption,
+# news, posts, aircraft circling) in one ~2 km square or the squares around it at once.
+# Elevated; critical only inside Greater Sydney with an emergency-level item or a
+# keyword-group match.
+convergence:
+  enabled: true
+  min_kinds: 3
+  window_hours: 2
+  # Posts only count as an event when this many different people post about the area.
+  social_min_people: 2
+
 storage:
   db_path: data/sitrep.db
   keep_minute_counts_days: 7
   keep_aggregates_days: 90
   keep_sample_posts_days: 7
+  # Headlines, warnings and notices each source has seen (never article text).
+  keep_items_days: 7
 
 http:
   # Sent with every request so the services sitrep polls know who is asking.
@@ -51,11 +104,21 @@ scoring:
   lower_after_minutes: 15
   # Sources that learn "normal" from history show "learning" (and can't alert) this long.
   learning_days: 7
-  # The overall level becomes ELEVATED when at least this many categories are elevated.
+  # The overall level becomes ELEVATED when at least this many categories are elevated
+  # about what is plausibly the same event (see "How it decides" in the README).
   elevated_when_categories: 2
   # A category becomes CRITICAL when this many of its sources are elevated at the same time.
   category_critical_when_sources_elevated:
     social: 2
+  # A source shows "fetch failing" after this many failed tries in a row.
+  failing_after_tries: 2
+  # Two national signals only back each other up when their themes match, or are listed
+  # together here. The themes are internet, cyber, power, fuel and security. Set
+  # national_needs_related_themes to false to let any two national signals back each other up.
+  national_needs_related_themes: true
+  related_themes:
+    - [internet, cyber]
+    - [internet, power]
 
 # Messages to your phone when the overall level changes. See "Telegram alerts" in the README.
 alerts:
@@ -67,6 +130,22 @@ alerts:
   # you how long it was down, if that was at least internet_outage_min_minutes.
   report_internet_outages: true
   internet_outage_min_minutes: 5
+  # An item that was already this old when sitrep first saw it (after an outage, say) is
+  # shown, but can't set off an alert. Slow sources use their poll interval plus their usual
+  # publishing delay instead, if that's longer. A source can set its own alert_recency_minutes.
+  recency_limit_minutes: 15
+  # No alerts this soon after sitrep starts, or after the internet comes back, while the
+  # sources catch up. Then one "while you were offline" message instead of a burst.
+  startup_grace_minutes: 2
+  # The same event can't alert again within this long.
+  repeat_after_minutes: 30
+  # If sitrep itself was down at least this long, it says what came in meanwhile once it's back.
+  summary_after_restart_minutes: 5
+  # How many items the "while you were offline" message lists.
+  summary_top_items: 5
+  # Elevated messages arrive silently; only critical ones make a sound. Set this to true
+  # to make elevated messages make a sound too.
+  elevated_makes_sound: false
   # A link to the dashboard to put in each message, such as your NAS's Tailscale
   # address (http://ds920:8080, say). Leave SITREP_DASHBOARD_URL empty for no link.
   dashboard_url: "${SITREP_DASHBOARD_URL:-}"
@@ -75,12 +154,19 @@ alerts:
     bot_token: "${TELEGRAM_BOT_TOKEN:-}"
     chat_id: "${TELEGRAM_CHAT_ID:-}"
 
+# Every source can also set:
+#   content_age_budget_minutes: how old the newest data inside its answers may get before
+#     it shows as "frozen" (a source can keep answering while its data has stopped
+#     changing). "none" for feeds that are quiet by nature. Leave it out for the default.
+#   alert_recency_minutes: see recency_limit_minutes under alerts.
 sources:
 
   # Local connectivity probes: tells "my line is down" apart from "the wider internet is down".
   probes:
     enabled: true
     interval_seconds: 30
+    # Each round is a fresh measurement, so there's no data to go stale.
+    content_age_budget_minutes: none
     timeout_seconds: 5
     # Rounds in a row with nothing outside answering before sitrep says
     # "can't reach the internet" (3 rounds of 30 seconds = about 90 seconds).
@@ -110,11 +196,64 @@ sources:
       - { name: Apple, url: "https://captive.apple.com/hotspot-detect.html" }
       - { name: "ABC (Akamai)", url: "https://www.abc.net.au/" }
 
+  # Regional reachability: every minute, how fast sitrep can reach two hosts in each of six
+  # regions (a TCP connection plus a TLS handshake; nothing else is sent). Spots "overseas
+  # route degraded, Australia fine", which is how a Pacific cable fault shows up first.
+  reach:
+    enabled: true
+    interval_seconds: 60
+    timeout_seconds: 5
+    # Each round is a fresh measurement, so there's no data to go stale.
+    content_age_budget_minutes: none
+    # A host is slow when its handshakes over the last 5 minutes are at least this many ms
+    # above its usual for the hour of the week, and at least this share above it.
+    degraded_extra_ms: 30
+    degraded_extra_share: 0.25
+    # This share of the last loss_rounds tries failing (or taking over a second) is packet
+    # loss; the last down_after_rounds tries all failing is down.
+    loss_rounds: 10
+    loss_share: 0.3
+    down_after_rounds: 3
+    # This many overseas regions slow, losing packets or unreachable while your home region
+    # is fine is elevated. One region alone is shown but not counted.
+    elevated_when_regions: 2
+    # Two hosts per region from different providers, so one provider's trouble doesn't look
+    # like a broken route. They must really be in the region: no anycast or CDN addresses
+    # (1.1.1.1, Cloudflare, Google), which answer from Sydney whatever the route is doing.
+    regions:
+      - name: Sydney
+        home: true
+        hosts:
+          - { name: AWS, host: dynamodb.ap-southeast-2.amazonaws.com }
+          - { name: Vultr, host: syd-au-ping.vultr.com }
+      - name: Singapore
+        hosts:
+          - { name: AWS, host: dynamodb.ap-southeast-1.amazonaws.com }
+          - { name: Hetzner, host: sin-speed.hetzner.com }
+      - name: Tokyo
+        hosts:
+          - { name: AWS, host: dynamodb.ap-northeast-1.amazonaws.com }
+          - { name: Oracle, host: objectstorage.ap-tokyo-1.oraclecloud.com }
+      - name: US West
+        hosts:
+          - { name: AWS, host: dynamodb.us-west-1.amazonaws.com }
+          - { name: Vultr, host: lax-ca-us-ping.vultr.com }
+      - name: US East
+        hosts:
+          - { name: AWS, host: dynamodb.us-east-1.amazonaws.com }
+          - { name: Hetzner, host: ash-speed.hetzner.com }
+      - name: Europe
+        hosts:
+          - { name: AWS, host: dynamodb.eu-west-2.amazonaws.com }
+          - { name: Hetzner, host: fsn1-speed.hetzner.com }
+
   # IODA (Georgia Tech): spots whole networks, regions or countries dropping off the
   # internet, using routing (BGP) and active probing. Free, no key needed.
   ioda:
     enabled: true
     interval_seconds: 300
+    # IODA's active probing usually runs 10 to 30 minutes behind.
+    content_age_budget_minutes: 90
     # The last 24 hours of active probing, for the charts, fetched this often.
     signals_every_minutes: 15
     areas:
@@ -138,6 +277,8 @@ sources:
   radar:
     enabled: true
     interval_seconds: 600
+    # Radar's 15-minute traffic figures usually lag by up to an hour.
+    content_age_budget_minutes: 180
     api_token: "${CLOUDFLARE_API_TOKEN:-}"
     country: AU
     country_name: Australia
@@ -153,12 +294,34 @@ sources:
     # Warn on the dashboard this many days before the token expires.
     token_warn_days: 14
 
+  # Cloud and CDN status for Sydney: AWS ap-southeast-2, Azure Australia East, Google
+  # Cloud australia-southeast1 and Cloudflare's Sydney data centre, from each provider's
+  # public status feed. No keys needed. Any active incident there is elevated (never
+  # critical by itself). Every check asks "has it changed?" first, so it costs little.
+  cloud:
+    enabled: true
+    interval_seconds: 300
+    # Weeks can pass without an incident, so only failed fetches count as a problem.
+    content_age_budget_minutes: none
+    # AWS: the services whose Sydney status feeds sitrep reads (ec2, s3, lambda, dynamodb,
+    # rds and apigateway all have one). Each is one small request per check.
+    aws_services: [ec2, s3, lambda, dynamodb]
+    # Azure's public feed lists only widespread incidents; one counts if it names these.
+    azure_regions: ["Australia East"]
+    # Google Cloud: incidents currently affecting these locations count.
+    gcp_locations: [australia-southeast1]
+    # Cloudflare: unresolved incidents whose name or locations contain these words count.
+    # Its per-location statuses (often "degraded" with no incident) are ignored.
+    cloudflare_words: [SYD, Sydney]
+
   # ASD's ACSC: the Australian Cyber Security Centre's alerts and advisories (RSS).
   # cyber.gov.au ignores requests named "...bot", so this source calls itself
   # "sitrep/<version> (...; RSS reader)" instead. See the README.
   acsc:
     enabled: true
     interval_seconds: 600
+    # Days can pass without a new item, so only failed fetches count as a problem.
+    content_age_budget_minutes: none
     feeds:
       - { name: Alert, url: "https://www.cyber.gov.au/rss/alerts" }
       - { name: Advisory, url: "https://www.cyber.gov.au/rss/advisories" }
@@ -202,11 +365,152 @@ sources:
         - multiple Australian organisations
         - significant impact
 
+  # Australian ransomware victims, from ransomware.live (gangs' leak sites). Needs a free
+  # key in .env (RANSOMWARE_LIVE_API_KEY); see "ransomware.live key" in the README.
+  # Non-commercial use only, credited "Source: Ransomware.live"; keep the dashboard private.
+  ransomware:
+    enabled: true
+    # ransomware.live caches for 30 minutes and counts faster polling as a breach of its
+    # fair-use rules, so this can't go below 1800.
+    interval_seconds: 3600
+    api_key: "${RANSOMWARE_LIVE_API_KEY:-}"
+    # Days can pass without an Australian victim, so only failed fetches count as a problem.
+    content_age_budget_minutes: none
+    # A new victim in one of these sectors (ransomware.live's names), or a telco, is
+    # elevated for recent_hours. Other victims are info.
+    recent_hours: 24
+    critical_sectors:
+      - Healthcare
+      - Energy & Utilities
+      - Government & Defense
+      - Financial Services
+      - Transportation
+    # ransomware.live has no telecoms sector, so telcos are found by these words in the
+    # victim's name or website (matching the start of a word, ignoring case).
+    telco_words: [telecom, telco, Telstra, Optus, TPG, Vodafone, iiNet, Aussie Broadband, Vocus, NBN, broadband]
+    # A burst is elevated: at least burst_min_victims in 24 hours, and less likely than
+    # burst_probability at the usual rate over the last baseline_days.
+    baseline_days: 90
+    burst_min_victims: 5
+    burst_probability: 0.001
+
+  # Foreign governments' travel advice for Australia: the US State Department's advisory
+  # (Level 1 to 4) and the UK FCDO's travel advice (GOV.UK, Open Government Licence v3.0).
+  # No key needed. A raised level is critical; an FCDO update mentioning any of the
+  # warning words is elevated; anything else is info. The US Embassy in Canberra's
+  # security alerts are a link only (its site refuses automated requests).
+  advice:
+    enabled: true
+    interval_seconds: 3600
+    # Both change rarely, so only failed fetches count as a problem.
+    content_age_budget_minutes: none
+    # A raised level counts as critical, and a worrying FCDO update as elevated, for
+    # this many hours after sitrep sees it.
+    recent_hours: 24
+    # These match the start of a word, ignoring case ("terror" also matches "terrorist").
+    # The FCDO's own page names ("Safety and security" page) don't count.
+    warning_words:
+      - terror
+      - security
+      - safety
+      - civil unrest
+      - unrest
+      - riot
+      - protest
+      - shooting
+      - attack
+      - explosion
+      - hostage
+
+  # NSW Rural Fire Service: current incidents across NSW (the Fires Near Me list), and how
+  # far each is from home. No key needed. © State of New South Wales (NSW RFS), CC BY 4.0.
+  rfs:
+    enabled: true
+    interval_seconds: 300
+    # Something in NSW is updated every few minutes, so 6 quiet hours means the feed is stuck.
+    content_age_budget_minutes: 360
+    # An Emergency Warning within critical_km of home is critical; within
+    # emergency_elevated_km, elevated. A Watch and Act within watch_and_act_km is elevated.
+    critical_km: 15
+    emergency_elevated_km: 50
+    watch_and_act_km: 15
+    # Incidents this close are listed on the dashboard.
+    show_km: 50
+
+  # Bureau of Meteorology: NSW warnings that cover Sydney, from BoM's anonymous FTP service
+  # (its website doesn't allow programs). BoM's terms allow personal use only: keep the
+  # dashboard private. A very dangerous thunderstorm warning for Sydney is critical; a
+  # Severe Weather, Severe Thunderstorm, Fire Weather or Major Flood warning is elevated.
+  bom:
+    enabled: true
+    interval_seconds: 600
+    # While a thunderstorm warning covers Sydney, look every 5 minutes instead.
+    storm_interval_seconds: 300
+    # Days can pass without a warning, so only failed fetches count as a problem.
+    content_age_budget_minutes: none
+    # A warning covers Sydney when it lists one of these area codes (Sydney Metropolitan)...
+    areas: [NSW_PW005, NSW_ME001]
+    # ...or an area whose name contains one of these (flood warnings name rivers).
+    # Marine warnings for the Sydney Coast are listed under Sydney, but never count.
+    area_names: [Sydney Metropolitan, Greater Sydney, Sydney Coast, Hawkesbury, Nepean, Georges River,
+                 Parramatta River, Cooks River, Lane Cove River, Woronora]
+
+  # Live Traffic NSW: road hazards (incidents, fires, floods) and major events, from
+  # Transport for NSW's Open Data Hub. Needs a free token in .env (TFNSW_API_KEY); see
+  # "Transport for NSW token" in the README. © Transport for NSW, CC BY 4.0. It never raises
+  # the level on its own: its hazards go on the map and the timeline.
+  livetraffic:
+    enabled: true
+    interval_seconds: 120
+    api_key: "${TFNSW_API_KEY:-}"
+    # Something somewhere in NSW is updated every few minutes; 3 quiet hours means it's stuck.
+    content_age_budget_minutes: 180
+    # Read every interval, and major events every slow_every_minutes.
+    types: [incident, fire, flood]
+    slow_types: [majorevent]
+    slow_every_minutes: 15
+    # Hazards this close to home are listed on the dashboard.
+    show_km: 25
+
+  # Sydney Trains and Sydney Metro service alerts, from Transport for NSW's Open Data Hub
+  # (same token as Live Traffic). An unplanned suspension across the whole network, several
+  # lines or the whole Metro line is elevated; planned trackwork and delays are only shown.
+  transit:
+    enabled: true
+    interval_seconds: 120
+    api_key: "${TFNSW_API_KEY:-}"
+    # The feed is remade every few seconds; 15 minutes without a new one means it's stuck.
+    content_age_budget_minutes: 15
+    feeds: [sydneytrains, metro]
+    # An unplanned suspension covering this many lines is elevated.
+    lines_for_elevated: 3
+
+  # News headlines from ABC News, the Sydney Morning Herald and Guardian Australia (RSS).
+  # Only the headline, link, outlet, time and any NSW place it names are kept, for 7 days;
+  # articles are never fetched. Personal, non-commercial use only. The Guardian and Nine
+  # (SMH) ban AI use of their content, so no_ai keeps them away from any language model.
+  # News never raises the level on its own: it feeds story clusters and the map.
+  news:
+    enabled: true
+    interval_seconds: 300
+    # Something is published every few minutes in the day; 4 quiet hours means the feeds are stuck.
+    content_age_budget_minutes: 240
+    feeds:
+      - { name: ABC News, url: "https://www.abc.net.au/news/feed/10719976/rss.xml", every_minutes: 10 }
+      - { name: ABC News NSW, url: "https://www.abc.net.au/news/feed/5555986/rss.xml", every_minutes: 15, nsw: true }
+      - { name: Sydney Morning Herald, url: "https://www.smh.com.au/rss/national/nsw.xml", every_minutes: 15,
+          nsw: true, no_ai: true }
+      - { name: Guardian Australia, url: "https://www.theguardian.com/australia-news/rss", every_minutes: 15,
+          no_ai: true }
+
   # AEMO: the operator of the east-coast electricity grid (the NEM). Demand, price and
-  # market notices for your region, from AEMO's public dashboard and NEMWeb.
+  # market notices for your region, from AEMO's public dashboard and NEMWeb. In the
+  # "stress" category.
   aemo:
     enabled: true
     interval_seconds: 300
+    # AEMO's figures are for 5-minute intervals.
+    content_age_budget_minutes: 20
     # Your region: NSW1, QLD1, VIC1, SA1 or TAS1.
     region: NSW1
     # In your region, an actual LOR3, load shedding or a suspended market is critical;
@@ -219,12 +523,31 @@ sources:
     # Notices from this far back are shown on the dashboard.
     notice_hours: 24
 
+  # NSW fuel prices from FuelCheck (NSW Government, CC BY-SA), on API.NSW. Needs a free
+  # key and secret in .env (FUELCHECK_API_KEY, FUELCHECK_API_SECRET); see "FuelCheck key"
+  # in the README. The free plan allows 2,500 calls a month; every 2 hours uses about 430.
+  fuel:
+    enabled: true
+    interval_seconds: 7200
+    api_key: "${FUELCHECK_API_KEY:-}"
+    api_secret: "${FUELCHECK_API_SECRET:-}"
+    # The fuels to track, by FuelCheck's codes (E10, P95, P98 and LPG are others).
+    fuels: { U91: Unleaded 91, DL: Diesel }
+    near_km: 10
+    # A median price this many cents a litre above its highest in the last
+    # baseline_days is elevated. Sydney's price cycle swings by 20 to 40 c/L, so this
+    # compares against the cycle's peak, not its average.
+    jump_cents: 10
+    baseline_days: 30
+    learning_days: 7
+
   # What the telcos themselves say. TPG and Aussie Broadband publish their outages as
   # data, so sitrep reads them every 10 minutes; the others are links on the dashboard.
   # These tiles are for information only and never change the overall status.
   telcos:
     enabled: true
     interval_seconds: 600
+    content_age_budget_minutes: none
     # Your state, for "in NSW" counts.
     state: NSW
     tpg: true
@@ -240,28 +563,37 @@ sources:
   # matching posts are kept, and a sample is deleted when its author deletes it.
   bluesky:
     enabled: true
+    # Jetstream sends about 25 posts a second, so the newest is never more than seconds old.
+    content_age_budget_minutes: 5
     # A post matches a group when it contains a phrase from every list. Phrases match
     # whole words, ignoring case; end one with * to match the start of a word.
+    # Each group's scope says what a spike is about: sydney, or national:<theme>
+    # (internet, cyber, power, fuel or security). Another category only backs up a spike
+    # that's about the same kind of thing.
     groups:
       - id: sydney_incident
         name: Sydney or NSW incident
+        scope: sydney
         all_of:
           - [Sydney, NSW, New South Wales]
           - [shooting, shooter, shots fired, explosion, explosions, exploded, lockdown, locked down,
              evacuate, evacuated, evacuating, evacuation]
       - id: telco_down
         name: Telco down
+        scope: national:internet
         all_of:
           - [Telstra, Optus, TPG, NBN, Vodafone, iiNet, Aussie Broadband, Belong]
           - [down, outage, outages, not working, no signal, no service, offline]
       - id: internet_down
         name: Internet down in Australia
+        scope: national:internet
         all_of:
           - [internet down, "internet is down", "internet's down", internet outage, internet outages,
              no internet, internet not working]
           - [Australia, Australian, Australians, Aussie, Sydney, NSW, New South Wales]
       - id: cyber_attack
         name: Cyber attack in Australia
+        scope: national:cyber
         all_of:
           - [cyber attack, cyberattack, cyber-attack, cyber attacks, cyberattacks, cyber incident,
              ransomware, data breach]
@@ -275,3 +607,32 @@ sources:
     baseline_weeks: 4
     # Example posts kept per group (deleted after 7 days, or when the author deletes them).
     samples_per_group: 20
+
+  # Aircraft over Sydney, from adsb.lol (ODbL 1.0; no key), with adsb.fi (personal,
+  # non-commercial use) asked only to double-check a sudden fall in the count. Counts
+  # aircraft in the air near the CBD against what's usual for each hour of the week, and
+  # spots aircraft circling (police, rescue, news). Positions are kept in memory for 15
+  # minutes only; hourly counts and circling events are saved.
+  adsb:
+    enabled: true
+    # adsb.lol's limits change with its load: once a minute is gentle.
+    interval_seconds: 60
+    centre_lat: -33.8688
+    centre_lon: 151.2093
+    radius_km: 40
+    # Far fewer than usual: at most 30% of the usual count, 3 checks in a row, at an
+    # hour when at least 8 are usually up, and adsb.fi agrees. Then it's elevated.
+    collapse_ratio: 0.3
+    collapse_checks: 3
+    collapse_min_usual: 8
+    # Circling: within orbit_km of one spot for orbit_minutes, below orbit_below_ft
+    # (helicopters at any height) and above orbit_above_ft. Never raises anything by
+    # itself; it's one kind of event for convergence.
+    orbit_km: 2
+    orbit_minutes: 10
+    orbit_below_ft: 3000
+    orbit_above_ft: 300
+    # Circuits and approaches near these airports aren't circling.
+    airports:
+      - { name: Sydney Airport, lat: -33.9461, lon: 151.1772, km: 4 }
+      - { name: Bankstown Airport, lat: -33.9244, lon: 150.9883, km: 5 }

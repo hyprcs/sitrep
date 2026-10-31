@@ -277,10 +277,10 @@ def test_dashboard_notices_carry_a_badge_and_summary():
     assert all(n["summary"] for n in result.details["notices"])
 
 
-def test_stale_figures_fail_the_poll():
+def test_figures_carry_their_own_time_so_a_frozen_feed_shows():
     regions, notices = live()
-    with pytest.raises(SourceError, match="stopped updating 25 minutes ago"):
-        assess(regions, notices, {}, SETTINGS, regions["NSW1"].at + 25 * 60)
+    result = assess(regions, notices, {}, SETTINGS, regions["NSW1"].at + 25 * 60)
+    assert result.content_at == regions["NSW1"].at  # the board compares this with the 20-minute budget
 
 
 # --- Demand drops ---

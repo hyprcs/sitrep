@@ -98,7 +98,7 @@ async def test_polling_adapter_records_failures_without_crashing(ctx):
     view = ctx.board.views()[0]
     assert view.failures >= 3
     assert view.last_error == "upstream said no"
-    assert view.level == Level.PENDING  # never reported as normal
+    assert view.level == Level.FAILING  # never reported as normal
 
 
 class DroppyStream(StreamingAdapter):

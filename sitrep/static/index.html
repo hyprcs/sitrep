@@ -20,7 +20,10 @@
         <span class="brand-name">sitrep</span>
         <span class="brand-sub">Sydney &amp; Australia</span>
       </div>
-      <time id="clock" class="clock"></time>
+      <div class="masthead-end">
+        <a class="masthead-link" href="map.html">Map</a>
+        <time id="clock" class="clock"></time>
+      </div>
     </header>
 
     <section id="sim-card" class="card sim-card" aria-live="polite" hidden>
@@ -40,9 +43,20 @@
       </div>
     </section>
 
+    <section id="gaps" class="card gaps" aria-labelledby="gaps-title" hidden>
+      <h2 id="gaps-title" class="gaps-title">What sitrep can't see right now</h2>
+      <ul id="gaps-list" class="gaps-list"></ul>
+      <p class="gaps-note">These sources don't count towards the status above until they're back.</p>
+    </section>
+
     <section class="block" aria-labelledby="categories-title">
       <h2 id="categories-title" class="block-title">Categories</h2>
       <div id="categories" class="cats"></div>
+    </section>
+
+    <section id="stories-block" class="block" aria-labelledby="stories-title" hidden>
+      <h2 id="stories-title" class="block-title">Stories from more than one kind of source</h2>
+      <div id="stories" class="stories"></div>
     </section>
 
     <section class="block" aria-labelledby="sources-title">

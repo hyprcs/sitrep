@@ -21,6 +21,11 @@ How it's judged, for your region (NSW unless you change it):
 
 Prices are shown but not judged: price spikes are routine on hot evenings.
 
+AEMO is in the "stress" category. Its 5-minute figures are timestamped, so if they
+stop moving on (for longer than content_age_budget_minutes, 20 by default) the
+source shows as frozen. A notice sitrep first sees long after AEMO issued it (after
+an outage, say) still shows, but can't raise an alert.
+
 AEMO's timestamps are "market time", which is AEST (UTC+10) all year round.
 """
 
@@ -35,7 +40,7 @@ from typing import Any, Iterable
 import httpx
 from pydantic import Field
 
-from ..models import Assessment, Category, Level
+from ..models import Assessment, Category, Level, Signal, national
 from ..util import format_duration
 from .base import AdapterContext, PollingAdapter, PollingSettings, SourceError, describe_error, get_json
 
@@ -70,8 +75,6 @@ class AemoSettings(PollingSettings):
     notices_url: str = "https://nemweb.com.au/Reports/Current/Market_Notice/"
     # Your region: NSW1, QLD1, VIC1, SA1 or TAS1.
     region: str = Field("NSW1", pattern=r"^(NSW1|QLD1|VIC1|SA1|TAS1)$")
-    # Figures older than this mean AEMO's data has stopped updating.
-    max_age_minutes: float = 20
     # Notices from this far back are shown and, when sitrep has missed some, fetched from NEMWeb.
     notice_hours: float = 24
     backfill_max_notices: int = Field(100, ge=10)
@@ -531,14 +534,15 @@ def assess(
     history: dict[float, tuple[float, float | None]],
     s: AemoSettings,
     now: float,
+    alertable: dict[int, bool] | None = None,
+    drop_alertable: bool = True,
 ) -> Assessment:
+    """alertable says, per notice id, whether sitrep saw it soon enough to alert on it."""
     home = s.region
     home_name = REGIONS[home].name
     current = regions.get(home)
     if current is None:
         raise SourceError(f"AEMO's summary has no figures for {home_name}")
-    if now - current.at > s.max_age_minutes * 60:
-        raise SourceError(f"AEMO's figures for {home_name} stopped updating {_ago(now, current.at)}")
 
     conditions = active_conditions(notices, now)
     # The market flags are AEMO's live state, so they count even without a notice.
@@ -606,7 +610,20 @@ def assess(
         "demand_drop": s.demand_drop,
         "chart": chart(history, current.at),
     }
-    return Assessment(level, "; ".join(reasons), details)
+    signals = [
+        Signal(
+            f"aemo:{c.name}:{c.region}", Level(c.level), (national("power"),),
+            title=f"{LABELS[c.name][0]} in {REGIONS[c.region].name}: {LABELS[c.name][1]}",
+            alertable=(alertable or {}).get(c.notice.id, True) if c.notice else True,
+            at=c.since, emergency=c.name in ("lor3", "load_shed") and c.region == home,
+        )
+        for c in counted
+    ]
+    if drop:
+        signals.append(Signal("aemo:drop", Level.ELEVATED, (national("power"),),
+                              title=f"{home_name} electricity demand fell {drop.share:.0%} in half an hour",
+                              alertable=drop_alertable, at=drop.at))
+    return Assessment(level, "; ".join(reasons), details, content_at=current.at, signals=tuple(signals))
 
 
 # --- The adapter ---
@@ -615,7 +632,9 @@ def assess(
 class AemoAdapter(PollingAdapter):
     id = "aemo"
     name = "AEMO electricity grid"
-    category = Category.OFFICIAL
+    category = Category.STRESS
+    scope = national("power")
+    content_budget_minutes = 20
     link = "https://www.aemo.com.au/energy-systems/electricity/national-electricity-market-nem/data-nem/data-dashboard-nem"
     Settings = AemoSettings
     settings: AemoSettings
@@ -656,7 +675,19 @@ class AemoAdapter(PollingAdapter):
             self._history[current.at] = (current.demand, current.price)
 
         self._forget(now)
-        assessment = assess(regions, list(self._notices.values()), self._history, s, now)
+        alertable = {
+            n.id: self.see_item(str(n.id), n.time, title=f"AEMO: {n.title}", level=mark or "info", now=now).alertable
+            for n in self._notices.values()
+            if (mark := notice_level(n, s.region)) or classify(n)
+        }
+        drop = find_drop(self._history, s, now)
+        drop_alertable = True
+        if drop:
+            drop_alertable = self.see_item(
+                f"drop:{int(drop.at)}", drop.at, level=Level.ELEVATED.value, now=now,
+                title=f"{REGIONS[s.region].name} electricity demand fell {drop.share:.0%} in half an hour",
+            ).alertable
+        assessment = assess(regions, list(self._notices.values()), self._history, s, now, alertable, drop_alertable)
         self._add_to_timeline(assessment, now)
         return assessment
 

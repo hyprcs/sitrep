@@ -125,6 +125,16 @@ def test_new_item_with_a_warning_sign_is_elevated():
     )
 
 
+def test_each_flagged_item_is_a_cyber_signal_that_knows_if_it_was_backlog():
+    adobe = item("Active exploitation of Adobe Commerce")
+    now = adobe.published + 3 * 3600
+    result = assess(all_items(), SETTINGS, now, {adobe.guid: False})
+    (signal,) = result.signals
+    assert signal.key == f"acsc:{adobe.guid}"
+    assert (signal.level, signal.scopes, signal.alertable) == (Level.ELEVATED, ("national:cyber",), False)
+    assert result.content_at == max(i.published for i in all_items() if i.published <= now)  # never a future item
+
+
 def test_new_item_without_warning_signs_is_normal():
     fortinet = item("Critical vulnerabilities in Fortinet")
     result = assess(all_items(), SETTINGS, fortinet.published + 2 * 3600)

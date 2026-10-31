@@ -27,6 +27,12 @@ async def state(request: Request) -> dict[str, Any]:
     return _runtime(request).state_payload()
 
 
+@router.get("/api/map")
+async def map_data(request: Request) -> dict[str, Any]:
+    """Home, and everything sources have placed on the map, for the map page."""
+    return _runtime(request).map_payload()
+
+
 @router.get("/api/timeline")
 async def timeline(request: Request, hours: float = Query(24, gt=0, le=24 * 90)) -> dict[str, Any]:
     runtime = _runtime(request)

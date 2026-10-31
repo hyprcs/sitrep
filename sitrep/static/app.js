@@ -15,10 +15,11 @@ const LEVELS = {
   critical: { label: "Critical", icon: "critical" },
   offline: { label: "Offline", icon: "offline" },
   learning: { label: "Learning", icon: "learning" },
+  failing: { label: "Fetch failing", icon: "clock" },
+  frozen: { label: "Frozen", icon: "pause" },
   watch: { label: "Dip", icon: "dip" },
   info: { label: "Info", icon: "dots" },
-  stale: { label: "Stale", icon: "clock" },
-  pending: { label: "Waiting", icon: "dots" },
+  stale: { label: "Not checked lately", icon: "clock" },
   unknown: { label: "Starting", icon: "dots" },
 };
 
@@ -35,8 +36,8 @@ const FAVICON_COLOURS = {
 };
 
 const CATEGORY_LABELS = {
-  connectivity: "Connectivity", network: "Network measurement", official: "Official",
-  social: "Social", info: "Info",
+  connectivity: "Connectivity", network: "Network measurement", official: "Official", cyber: "Cyber intel",
+  news: "News", social: "Social", stress: "Stress", sensors: "Sensors", info: "Info",
 };
 const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS);
 
@@ -69,6 +70,9 @@ const ICON_PATHS = {
   learning:
     '<circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
     '<path d="M8 1.7A6.3 6.3 0 0 1 14.3 8H8z" fill="currentColor"/>',
+  pause:
+    '<circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+    '<path d="M6.4 5.4v5.2M9.6 5.4v5.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
   dip:
     '<circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
     '<path d="M8 4.5v6.2M5.4 8.3L8 10.9l2.6-2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -214,7 +218,9 @@ function render() {
   if (!app.state) return;
   renderSimulation(app.state.simulation);
   renderOverall(app.state.overall);
+  renderGaps(app.state.gaps || []);
   renderCategories(app.state.categories);
+  renderStories(app.state.sources);
   renderSources(app.state.sources);
   renderNetworks(app.state.sources);
   renderRadar(app.state.sources);
@@ -271,6 +277,14 @@ function renderOverall(overall) {
   warn.textContent = broken.map((a) => `${a.name} alerts aren't working: ${sentence(a.detail)}`).join(" ");
 }
 
+// What sitrep can't currently see: sources that are fetch failing, frozen or still learning.
+function renderGaps(gaps) {
+  $("#gaps").hidden = !gaps.length;
+  $("#gaps-list").replaceChildren(...gaps.map((gap) =>
+    h("li", { class: `gap lvl-${gap.health}` }, icon(LEVELS[gap.health]?.icon || "dots", 14),
+      h("span", { text: sentence(gap.text) }))));
+}
+
 function renderCategories(categories) {
   $("#categories").replaceChildren(...categories.map((cat) => {
     const level = cat.level || "none";
@@ -281,6 +295,35 @@ function renderCategories(categories) {
           : h("span", { class: "pill sm lvl-none", text: cat.sources ? "No live data" : "Not set up" })),
       h("p", { class: "cat-reason", text: sentence(cat.reason) }));
   }));
+}
+
+// Stories: items from official, news and social sources about one event. Triangulated ones
+// (all three kinds) come first. Post text is shown here but never saved by sitrep.
+const KIND_LABELS = { official: "Official", mainstream: "News", social: "Social" };
+
+function storyCard(story) {
+  const members = story.members.slice(0, 6).map((m) => {
+    const link = m.type === "mainstream" ? safeUrl(m.url) : null;
+    const who = m.outlet || m.source_name;
+    const text = m.type === "social" ? `“${m.title}”` : m.title;
+    return h("li", {}, h("span", { class: "muted", text: `${who}: ` }),
+      link ? h("a", { href: link, target: "_blank", rel: "noopener noreferrer", text }) : text);
+  });
+  if (story.size > members.length) members.push(h("li", { class: "muted", text: `and ${story.size - members.length} more` }));
+  return h("article", { class: `story card lvl-${story.level === "normal" ? "info" : story.level}` },
+    h("header", { class: "story-head" },
+      pill(story.level === "normal" ? "info" : story.level, story.triangulated ? "Triangulated" : null, true),
+      h("h3", { text: story.title })),
+    h("p", { class: "story-meta", text:
+      `${story.where} · ${story.kinds.map((k) => KIND_LABELS[k]).join(" + ")} · ${ago(story.last_at)}` +
+      (story.keywords.length ? ` · matches ${story.keywords.join(", ")}` : "") }),
+    h("ul", { class: "story-members" }, ...members));
+}
+
+function renderStories(sources) {
+  const stories = (sources.find((s) => s.id === "stories")?.details?.stories || []).filter((s) => s.kinds.length >= 2);
+  $("#stories-block").hidden = !stories.length;
+  if (stories.length) $("#stories").replaceChildren(...stories.map(storyCard));
 }
 
 function renderSources(sources) {
@@ -302,7 +345,7 @@ function sourceTile(source) {
       pill(source.level)),
     h("p", { class: "tile-reason", text: sentence(source.reason) }),
   ];
-  if (source.level === "stale" && source.last_success_at) {
+  if (["failing", "frozen"].includes(source.level) && source.last_success_at) {
     parts.push(h("p", { class: "tile-lastknown" },
       "Last known:", pill(source.last_known_level, null, true), sentence(source.last_known_reason)));
   } else if (source.failures > 0) {
@@ -311,6 +354,8 @@ function sourceTile(source) {
   }
   const meta = h("p", { class: "tile-meta" },
     source.last_success_at ? `Updated ${clockTime(source.last_success_at)} · ${ago(source.last_success_at)}` : "No update yet");
+  const age = dataAge(source);
+  if (age) meta.append(" · ", age);
   const link = safeUrl(source.link);
   if (link) meta.append(" · ", h("a", { href: link, target: "_blank", rel: "noopener noreferrer", text: "Source ↗" }));
   parts.push(meta);
@@ -318,6 +363,14 @@ function sourceTile(source) {
   const extra = DETAILS[source.id];
   if (extra && source.details && Object.keys(source.details).length) parts.push(detailsBlock(source.id, extra.title, extra.render(source.details)));
   return h("article", { class: `tile card lvl-${source.level}` }, ...parts);
+}
+
+// How new the data inside the source's last answer was: not the same as when it was fetched.
+function dataAge(source) {
+  if (!source.last_success_at) return "";
+  if (source.content_at) return `newest data ${ago(source.content_at)}`;
+  if (source.feed_at) return `feed updated ${ago(source.feed_at)}`;
+  return source.content_budget ? "data age unknown" : "";
 }
 
 function detailsBlock(id, title, content) {
@@ -347,7 +400,312 @@ const DETAILS = {
         h("tbody", {}, rows));
     },
   },
+  reach: {
+    title: "Show each region",
+    render(details) {
+      const rows = (details.regions || []).map((r) => h("tr", {},
+        h("td", {}, pill(...REGION_STATES[r.state] || REGION_STATES.unknown, true)),
+        h("td", { text: r.name + (r.home ? " (home)" : "") }),
+        h("td", {}, ...r.hosts.flatMap((host, i) => [i ? h("br") : "", reachHost(host)]))));
+      return h("table", { class: "checks" },
+        h("thead", {}, h("tr", {},
+          h("th", { text: "State" }), h("th", { text: "Region" }), h("th", { text: "Handshake time (usual)" }))),
+        h("tbody", {}, rows));
+    },
+  },
 };
+
+// NSW RFS incidents near home. "mark" is how much each matters here; "level" is the RFS's own alert level.
+DETAILS.rfs = {
+  title: "Show incidents near home",
+  render(details) {
+    const near = details.near || [];
+    const parts = [];
+    if (near.length) {
+      parts.push(h("table", { class: "checks" },
+        h("thead", {}, h("tr", {},
+          h("th", { text: "Alert level" }), h("th", { text: "Incident" }), h("th", { class: "num", text: "Away" }))),
+        h("tbody", {}, ...near.map((i) => h("tr", {},
+          h("td", {}, pill(i.mark === "watch" ? "watch" : i.mark, i.level, true)),
+          h("td", { text: [i.title, i.council, i.status].filter(Boolean).join(" · ") }),
+          h("td", { class: "num", text: `${Math.round(i.km)} km` }))))));
+    } else {
+      parts.push(h("p", { class: "muted", text: `No incidents within ${details.show_km} km of ${details.home?.name || "home"}.` }));
+    }
+    const sw = details.statewide || {};
+    parts.push(h("p", { class: "muted", text:
+      `Across NSW: ${sw.total ?? 0} incidents (${sw["Emergency Warning"] ?? 0} Emergency Warning, ` +
+      `${sw["Watch and Act"] ?? 0} Watch and Act, ${sw.Advice ?? 0} Advice). Data: NSW RFS, CC BY 4.0.` }));
+    return h("div", {}, ...parts);
+  },
+};
+
+// Live Traffic hazards near home: unplanned or major ones, nearest first.
+DETAILS.livetraffic = {
+  title: "Show hazards near home",
+  render(details) {
+    const near = details.near || [];
+    const parts = [];
+    if (near.length) {
+      parts.push(h("table", { class: "checks" },
+        h("thead", {}, h("tr", {},
+          h("th", { text: "Hazard" }), h("th", { text: "Where" }), h("th", { class: "num", text: "Away" }))),
+        h("tbody", {}, ...near.map((z) => h("tr", {},
+          h("td", {}, pill(z.major ? "watch" : "info", z.kind === "majorevent" ? "Event" : z.major ? "Major" : "Hazard", true)),
+          h("td", { text: [z.title, z.advice, z.updated ? `updated ${ago(z.updated)}` : ""].filter(Boolean).join(" · ") }),
+          h("td", { class: "num", text: `${Math.round(z.km)} km` }))))));
+    } else {
+      parts.push(h("p", { class: "muted", text: `No unplanned or major hazards within ${details.show_km} km of home.` }));
+    }
+    parts.push(h("p", { class: "muted", text: "Data: Live Traffic NSW, Transport for NSW, CC BY 4.0." }));
+    return h("div", {}, ...parts);
+  },
+};
+
+// Sydney Trains and Metro: unplanned disruptions now, and how much planned trackwork is on.
+DETAILS.transit = {
+  title: "Show disruptions",
+  render(details) {
+    const rows = (details.disruptions || []).map((a) => h("tr", {},
+      h("td", {}, pill(a.widespread && a.suspension ? "elevated" : "info",
+        a.suspension ? "Suspended" : "Disrupted", true)),
+      h("td", { text: [(a.line_names || []).join(", ") || "Network", a.header].filter(Boolean).join(": ") })));
+    const parts = [rows.length
+      ? h("table", { class: "checks" }, h("tbody", {}, ...rows))
+      : h("p", { class: "muted", text: "No unplanned disruptions right now." })];
+    const now = details.trackwork_now || [];
+    parts.push(h("p", { class: "muted", text:
+      `${details.planned_total ?? 0} planned trackwork alerts published; ${now.length} in force now` +
+      (now.length ? `: ${now.slice(0, 3).map((t) => t.header).join("; ")}` : "") + ". Data: Transport for NSW, CC BY 4.0." }));
+    return h("div", {}, ...parts);
+  },
+};
+
+// BoM warnings in force: Sydney's first, then the rest of NSW.
+DETAILS.bom = {
+  title: "Show warnings",
+  render(details) {
+    const warnings = details.warnings || [];
+    if (!warnings.length) return h("p", { class: "muted", text: "No BoM warnings in force in NSW. Data: Bureau of Meteorology." });
+    return h("div", {},
+      h("table", { class: "checks" }, h("tbody", {}, ...warnings.map((w) => h("tr", {},
+        h("td", {}, pill(w.kind === "info" ? "info" : w.kind, w.sydney ? "Sydney" : "NSW", true)),
+        h("td", { text: w.headline + (w.expires ? ` · until ${clockFormat.format(new Date(w.expires * 1000))}` : "") }))))),
+      h("p", { class: "muted", text: "Data: Bureau of Meteorology, for personal use only." }));
+  },
+};
+
+// The latest headlines, with the Sydney places they name. Links go to the outlet.
+DETAILS.news = {
+  title: "Show latest headlines",
+  render(details) {
+    const items = (details.headlines || []).map((n) => {
+      const link = safeUrl(n.link);
+      const title = link ? h("a", { href: link, target: "_blank", rel: "noopener noreferrer", text: n.title }) : n.title;
+      const meta = [n.outlet, n.places?.length ? n.places.join(", ") : "", n.published ? ago(n.published) : ""]
+        .filter(Boolean).join(" · ");
+      return h("li", {}, title, h("span", { class: "muted", text: ` (${meta})` }));
+    });
+    return h("div", {},
+      items.length ? h("ul", { class: "headlines" }, ...items) : h("p", { class: "muted", text: "No headlines yet." }),
+      h("p", { class: "muted", text: "Headlines only; sitrep never fetches the articles." }));
+  },
+};
+
+// Every story with two or more items, including ones from only one kind of source.
+DETAILS.stories = {
+  title: "Show every story",
+  render(details) {
+    const stories = details.stories || [];
+    if (!stories.length) return h("p", { class: "muted", text: `No two items from the last ${details.window_hours} hours are about the same thing yet.` });
+    return h("ul", { class: "headlines" }, ...stories.map((s) => h("li", {},
+      `${s.title} `, h("span", { class: "muted", text: `(${s.where}; ${s.size} items: ${
+        s.kinds.length ? s.kinds.map((k) => KIND_LABELS[k]).join(" + ") : "routine items only"})` }))));
+  },
+};
+
+// Emerging terms: flagged ones first (suburbs before other words), then the busiest.
+DETAILS.terms = {
+  title: "Show busiest terms",
+  render(details) {
+    const terms = details.terms || [];
+    if (!terms.length) return h("p", { class: "muted", text: "No terms counted yet." });
+    const rows = terms.map((t) => h("tr", {},
+      h("td", {}, t.flagged ? pill("elevated", "Busy", true) : h("span", { class: "muted", text: "" })),
+      h("td", {}, h("strong", { text: t.term }), t.place ? h("span", { class: "muted", text: " (suburb)" }) : "",
+        ...(t.samples || []).slice(0, 3).map((s) => h("div", { class: "muted term-sample",
+          text: `${s.kind === "social" ? "Post" : "Headline"}: ${s.text}` }))),
+      h("td", { class: "num", text: `${t.mentions} (usual ${t.usual})` })));
+    return h("div", {},
+      h("table", { class: "checks" }, h("thead", {}, h("tr", {}, h("th", { text: "" }), h("th", { text: "Term" }),
+        h("th", { class: "num", text: `Mentions, ${details.window_hours} h` }))), h("tbody", {}, ...rows)),
+      h("p", { class: "muted", text: "Only terms and counts are kept; post text shown here is never saved." }));
+  },
+};
+
+// Foreign governments' travel advice for Australia, the FCDO's latest updates, and the embassy link.
+const yearDate = new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+// "3 hours ago" for the last week, then the date.
+function agoOrDate(ts) {
+  return nowSeconds() - ts <= 7 * 86400 ? ago(ts) : yearDate.format(new Date(ts * 1000));
+}
+
+function outLink(url, text) {
+  const link = safeUrl(url);
+  return link ? h("a", { href: link, target: "_blank", rel: "noopener noreferrer", text }) : text;
+}
+
+DETAILS.advice = {
+  title: "Show advice and updates",
+  render(details) {
+    const parts = [];
+    const rows = [];
+    if (details.us) {
+      rows.push(h("tr", {},
+        h("td", {}, pill(details.us.level > 1 ? "elevated" : "normal", `Level ${details.us.level}`, true)),
+        h("td", {}, outLink(details.us.link, "US State Department"),
+          h("span", { class: "muted", text: ` · ${details.us.label}${details.us.issued ? ` · issued ${details.us.issued}` : ""}` }))));
+    }
+    if (details.uk) {
+      rows.push(h("tr", {},
+        h("td", {}, pill(details.uk.rank ? "elevated" : "normal", details.uk.rank ? "Against travel" : "No warning", true)),
+        h("td", {}, outLink(details.uk.link, "UK FCDO"), h("span", { class: "muted", text: ` · ${details.uk.label}` }))));
+    }
+    if (rows.length) parts.push(h("table", { class: "checks" }, h("tbody", {}, ...rows)));
+    const changes = (details.changes || []).filter((c) => c.counts);
+    if (changes.length) {
+      parts.push(h("ul", { class: "headlines" }, ...changes.map((c) => h("li", {},
+        pill(c.raised ? "critical" : "info", c.raised ? "Raised" : "Lowered", true), ` ${c.text} `,
+        h("span", { class: "muted", text: `(${ago(c.at)})` })))));
+    }
+    const updates = details.updates || [];
+    if (updates.length) {
+      parts.push(h("p", { class: "muted", text: "The FCDO's latest updates:" }));
+      parts.push(h("ul", { class: "headlines" }, ...updates.map((u) => h("li", {},
+        u.warnings.length && u.recent ? pill("elevated", "Security", true) : "", u.warnings.length && u.recent ? " " : "",
+        u.note, h("span", { class: "muted", text: ` (${agoOrDate(u.at)}${u.warnings.length ? `; mentions ${u.warnings.join(", ")}` : ""})` })))));
+    }
+    parts.push(h("p", { class: "muted" }, "Security alerts from the US Embassy in Canberra: ",
+      outLink(details.embassy, "au.usembassy.gov"), " (link only; its site refuses automated requests)."));
+    parts.push(h("p", { class: "muted", text: "Data: US Department of State; UK FCDO via GOV.UK, " +
+      "contains public sector information licensed under the Open Government Licence v3.0." }));
+    return h("div", {}, ...parts);
+  },
+};
+
+// Cloud and CDN status: each provider's Sydney region, its incidents, and Cloudflare maintenance.
+DETAILS.cloud = {
+  title: "Show each provider",
+  render(details) {
+    const rows = (details.providers || []).map((p) => h("tr", {},
+      h("td", {}, p.incidents.length ? pill("elevated", "Incident", true) : pill("normal", "OK", true)),
+      h("td", {}, outLink(p.link, p.name), h("span", { class: "muted", text: ` · ${p.region}` }),
+        ...p.incidents.map((i) => h("div", {}, outLink(i.link, i.title),
+          h("span", { class: "muted", text: ` (${[i.status, i.started ? `posted ${ago(i.started)}` : ""].filter(Boolean).join("; ")})` }))),
+        ...p.maintenance.map((m) => h("div", { class: "muted", text: `Scheduled maintenance: ${m.name}` })),
+        p.elsewhere ? h("div", { class: "muted", text: `${p.elsewhere} other incident${p.elsewhere === 1 ? "" : "s"} elsewhere` }) : "")));
+    return h("div", {},
+      h("table", { class: "checks" }, h("tbody", {}, ...rows)),
+      h("p", { class: "muted", text: "From each provider's public status feed. Azure's lists only widespread incidents." }));
+  },
+};
+
+// Australian ransomware victims, newest first. ransomware.live asks to be credited with a link.
+DETAILS.ransomware = {
+  title: "Show latest victims",
+  render(details) {
+    const victims = details.victims || [];
+    const credit = h("p", { class: "muted" }, outLink(details.site, details.attribution || "Source: Ransomware.live"),
+      ` · ${details.last_24h ?? 0} in the last 24 hours, usually ${details.usual_per_day ?? 0} a day. ` +
+      "A listing is a gang's claim, often weeks after the attack.");
+    if (!victims.length) return h("div", {}, h("p", { class: "muted", text: "No Australian victims listed recently." }), credit);
+    return h("div", {},
+      h("table", { class: "checks" }, h("tbody", {}, ...victims.map((v) => h("tr", {},
+        h("td", {}, v.critical && v.recent ? pill("elevated", v.sector, true) : h("span", { class: "muted", text: v.sector })),
+        h("td", {}, outLink(v.link, v.name), h("span", { class: "muted", text: ` · ${v.group} · ${agoOrDate(v.discovered)}` })))))),
+      credit);
+  },
+};
+
+// Fuel: median prices near home and across NSW, against the last 30 days.
+DETAILS.fuel = {
+  title: "Show prices",
+  render(details) {
+    const cents = (v) => (v == null ? "–" : v.toFixed(1));
+    const rows = (details.fuels || []).flatMap((f) => ["home", "nsw"].filter((a) => f[a]).map((a) => h("tr", {},
+      h("td", {}, f[a].jumped ? pill("elevated", "Jump", true) : h("span", { class: "muted", text: "" })),
+      h("td", { text: `${f.name}, ${a === "home" ? `within ${details.near_km} km of home` : "across NSW"}` }),
+      h("td", { class: "num", text: cents(f[a].cents) }),
+      h("td", { class: "num muted", text: f[a].usual == null ? "learning" : `${cents(f[a].usual)} / ${cents(f[a].highest)}` }),
+      h("td", { class: "num muted", text: String(f[a].stations) }))));
+    const cheapest = Object.entries(details.cheapest || {}).map(([code, c]) => {
+      const name = (details.fuels || []).find((f) => f.code === code)?.name || code;
+      return `${name}: ${c.name}, ${cents(c.cents)}`;
+    });
+    return h("div", {},
+      h("table", { class: "checks" },
+        h("thead", {}, h("tr", {}, h("th", { text: "" }), h("th", { text: "Median price (c/L)" }), h("th", { class: "num", text: "Now" }),
+          h("th", { class: "num", text: `Usual / highest, ${details.baseline_days} days` }), h("th", { class: "num", text: "Stations" }))),
+        h("tbody", {}, ...rows)),
+      cheapest.length ? h("p", { class: "muted", text: `Cheapest near home: ${cheapest.join("; ")}.` }) : "",
+      h("p", { class: "muted", text: `A jump is more than ${details.jump_cents} c/L above the highest of the last ${details.baseline_days} days. ${details.credit || ""}.` }));
+  },
+};
+
+// Aircraft over Sydney: the count against what's usual, and anything circling.
+DETAILS.adsb = {
+  title: "Show aircraft",
+  render(details) {
+    const parts = [h("p", {}, `${details.airborne} in the air within ${details.radius_km} km of the CBD` +
+      (details.usual != null ? ` (usually ${Math.round(details.usual)} at ${details.basis})` : " (learning what's usual)") +
+      `, ${details.helicopters === 1 ? "1 of them a helicopter" : `${details.helicopters || "none"} of them helicopters`}; ` +
+      `${details.on_ground} on the ground.`)];
+    if (details.check) {
+      parts.push(h("p", { class: "muted", text: details.check.count != null
+        ? `Double-checked with adsb.fi ${ago(details.check.at)}: it sees ${details.check.count}.`
+        : `Couldn't double-check with adsb.fi (${details.check.error}).` }));
+    }
+    const orbits = details.orbits || [];
+    parts.push(orbits.length
+      ? h("ul", { class: "headlines" }, ...orbits.map((o) => h("li", {},
+        `${o.helicopter ? "Helicopter" : "Aircraft"} ${o.name} circling near ${o.place} `,
+        h("span", { class: "muted", text: `(${Math.round(o.minutes)} minutes, ${Math.round(o.low_ft)}–${Math.round(o.high_ft)} ft)` }))))
+      : h("p", { class: "muted", text: "Nothing circling. Not every police aircraft broadcasts, so this means little." }));
+    parts.push(h("p", { class: "muted" }, "Aircraft data: ", outLink("https://adsb.lol/", "adsb.lol"), " (ODbL 1.0) and ",
+      outLink("https://adsb.fi/", "adsb.fi"), "."));
+    return h("div", {}, ...parts);
+  },
+};
+
+// Convergence: areas with several kinds of event at once.
+DETAILS.convergence = {
+  title: "Show areas",
+  render(details) {
+    const spots = details.hotspots || [];
+    if (!spots.length) return h("p", { class: "muted", text: `No area has three kinds of event in the last ${details.window_hours} hours.` });
+    return h("ul", { class: "headlines" }, ...spots.map((s) => h("li", {},
+      h("strong", { text: s.where }), ` (${s.kinds.join(", ")}): `,
+      h("span", { class: "muted", text: s.events.slice(0, 4).map((e) => e.title).join("; ") }))));
+  },
+};
+
+const REGION_STATES = {
+  normal: ["normal", "Normal"], degraded: ["elevated", "Degraded"], unreachable: ["critical", "Unreachable"],
+  unknown: ["unknown", "Unknown"],
+};
+
+function reachHost(host) {
+  const ms = host.now_ms ?? null;
+  const usual = host.usual_ms ? ` (usual ${Math.round(host.usual_ms)})` : "";
+  const what = {
+    down: `down: ${host.error || "no answer"}`,
+    lossy: `losing packets (${Math.round((host.loss || 0) * 100)}% of tries)`,
+    unknown: `couldn't check: ${host.error || "unknown"}`,
+    waiting: "waiting for results",
+  }[host.state] || (ms === null ? "waiting for results" : `${Math.round(ms)} ms${usual}${host.state === "slow" ? ", slow" : ""}`);
+  return `${host.provider}: ${what}`;
+}
 
 // --- Australian networks (from IODA) ---
 

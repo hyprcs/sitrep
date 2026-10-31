@@ -10,7 +10,12 @@ How it's judged (the word lists are in config.yaml):
   mentions active exploitation, critical infrastructure, telecommunications or
   widespread impact;
 - never critical by itself: ACSC titles many routine items "Critical
-  vulnerabilities in ...", so the word "critical" alone means little.
+  vulnerabilities in ...", so the word "critical" alone means little;
+- an item sitrep first sees long after ACSC published it (after an outage, say)
+  still shows, but can't raise an alert.
+
+ACSC's feeds are quiet by nature (days can pass without an item), so the source is
+never "frozen"; it only shows a problem when fetching fails.
 
 cyber.gov.au silently ignores requests whose User-Agent contains "bot", so this
 source names itself "sitrep/<version> (...; RSS reader)" instead of "sitrep-bot".
@@ -31,7 +36,7 @@ from pydantic import Field
 
 from .. import __version__
 from ..config import HttpSettings, Settings
-from ..models import Assessment, Category, Level
+from ..models import Assessment, Category, Level, Signal, national
 from ..util import format_duration
 from .base import AdapterContext, PollingAdapter, PollingSettings, SourceError, retry_after_seconds
 
@@ -147,7 +152,7 @@ def _quoted(item: Item) -> str:
     return f"“{item.title}”"
 
 
-def assess(items: list[Item], s: AcscSettings, now: float) -> Assessment:
+def assess(items: list[Item], s: AcscSettings, now: float, alertable: dict[str, bool] | None = None) -> Assessment:
     # Items dated in the future don't exist yet (allowing ten minutes for clocks that disagree).
     latest = sorted((i for i in items if i.published <= now + 600), key=lambda i: i.published, reverse=True)
     recent = [i for i in latest if now - i.published <= s.recent_hours * 3600]
@@ -186,7 +191,13 @@ def assess(items: list[Item], s: AcscSettings, now: float) -> Assessment:
         "recent_hours": s.recent_hours,
         "warning_signs": list(s.warning_signs),
     }
-    return Assessment(level, reason, details)
+    signals = tuple(
+        Signal(f"acsc:{i.guid}", Level.ELEVATED, (national("cyber"),), title=f"ACSC {i.kind.lower()}: {_quoted(i)}",
+               alertable=(alertable or {}).get(i.guid, True), at=i.published)
+        for i in flagged
+    )
+    content_at = latest[0].published if latest else None
+    return Assessment(level, reason, details, content_at=content_at, signals=signals)
 
 
 @dataclass
@@ -196,12 +207,22 @@ class _Cached:
     items: list[Item]
 
 
+def _http_date(text: str | None) -> float | None:
+    try:
+        return parsedate_to_datetime(text).timestamp() if text else None
+    except (TypeError, ValueError):
+        return None
+
+
 class AcscAdapter(PollingAdapter):
     id = "acsc"
     name = "ACSC alerts and advisories"
     category = Category.OFFICIAL
     link = "https://www.cyber.gov.au/about-us/view-all-content/alerts-and-advisories"
     Settings = AcscSettings
+    scope = national("cyber")
+    # cyber.gov.au's feeds can take a while to show a new item after its publication time.
+    publish_delay_minutes = 15
     settings: AcscSettings
 
     def __init__(self, ctx: AdapterContext, settings: AcscSettings) -> None:
@@ -232,7 +253,18 @@ class AcscAdapter(PollingAdapter):
         answers = await asyncio.gather(*(self.fetch(feed) for feed in self.settings.feeds))
         items = [item for feed_items in answers for item in feed_items]
         self._add_to_timeline(items, now)
-        return assess(items, self.settings, now)
+        alertable = {
+            item.guid: self.see_item(
+                item.guid, item.published, title=f"ACSC {item.kind.lower()}: {item.title}",
+                level=Level.ELEVATED.value if item.signs else "info", url=item.link, now=now,
+            ).alertable
+            for item in items
+            if now - item.published <= 7 * 86400
+        }
+        result = assess(items, self.settings, now, alertable)
+        modified = [_http_date(c.last_modified) for c in self._cache.values()]
+        return Assessment(result.level, result.reason, result.details, content_at=result.content_at,
+                          feed_at=max(filter(None, modified), default=None), signals=result.signals)
 
     def _add_to_timeline(self, items: list[Item], now: float) -> None:
         """Put each item from the last week on the timeline, once, at the time ACSC published it."""

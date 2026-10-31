@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import mimetypes
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import AsyncIterator
@@ -13,6 +14,12 @@ from .api import router
 from .runtime import Runtime
 
 STATIC_DIR = Path(__file__).parent / "static"
+
+# File types the map page needs. Python guesses types from the operating system, and Windows
+# calls .mjs files plain text, which browsers refuse to run as JavaScript.
+for kind, extension in (("text/javascript", ".mjs"), ("application/x-protobuf", ".pbf"),
+                        ("application/vnd.pmtiles", ".pmtiles")):
+    mimetypes.add_type(kind, extension)
 
 
 def create_app(runtime: Runtime) -> FastAPI:
@@ -27,6 +34,11 @@ def create_app(runtime: Runtime) -> FastAPI:
     app = FastAPI(title="sitrep", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.runtime = runtime
     app.include_router(router)
+    # The basemap made by `python -m sitrep map`. The map page reads it in pieces (HTTP range
+    # requests), which StaticFiles supports. Until the file exists, it simply isn't found.
+    tiles = Path(runtime.cfg.map.tiles_path).parent
+    tiles.mkdir(parents=True, exist_ok=True)
+    app.mount("/tiles", StaticFiles(directory=tiles), name="tiles")
     # Everything the page needs is served from here: no CDNs, so it works offline.
     app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
     return app

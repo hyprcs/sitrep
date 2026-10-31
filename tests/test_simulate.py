@@ -59,7 +59,7 @@ async def test_the_whole_story(tmp_path):
     runtime = SimulatedRuntime(simulation_config(real_config(tmp_path)), clock=lambda: now[0])
     runtime.setup()
     recorder = Recorder(runtime.db)
-    runtime.alerts = Alerts(runtime.cfg.alerts, runtime.db, [recorder])
+    runtime.alerts = Alerts(runtime.cfg.alerts, runtime.db, [recorder], started_at=T0)
     sim = runtime.simulation
 
     levels = {}
@@ -82,13 +82,14 @@ async def test_the_whole_story(tmp_path):
 
     story = [(round(at), a.kind, a.level, a.loud) for at, a in recorder.alerts]
     assert [(kind, level, loud) for _, kind, level, loud in story] == [
-        ("raised", Overall.ELEVATED, True),
+        ("raised", Overall.ELEVATED, False),
         ("raised", Overall.CRITICAL, True),
         ("lowered", Overall.NORMAL, False),
-        ("back_online", Overall.NORMAL, False),
+        ("summary", Overall.NORMAL, False),
     ]
     times = [at for at, *_ in story]
-    assert 75 < times[0] <= 90 and 135 < times[1] <= 150 and 300 < times[2] < 360 and 410 <= times[3] <= 420
+    assert 75 < times[0] <= 90 and 135 < times[1] <= 150 and 300 < times[2] < 360 and 420 <= times[3] <= 430
+    assert recorder.alerts[3][1].items["total"] == 1  # the ACSC item that came in while it was offline
     assert "Telstra (AS1221) is dropping on 2 methods (simulated)" in recorder.alerts[0][1].reason
     assert not (tmp_path / "sitrep.db").exists()  # the real database was never opened
 

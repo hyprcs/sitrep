@@ -108,21 +108,59 @@ def sentence(text: str) -> str:
     return text if text[-1] in ".!?" else text + "."
 
 
+RANKED = {"normal": 0, "elevated": 1, "critical": 2}
+ITEM_MARKS = {"critical": HEADLINES[Overall.CRITICAL][0], "elevated": HEADLINES[Overall.ELEVATED][0]}
+
+
+def _cut(text: str) -> str:
+    return text if len(text) <= MAX_REASON else text[: MAX_REASON - 1] + "…"
+
+
+def _summary_lines(alert: Alert, when: Callable[[float], str]) -> list[str]:
+    start, end = alert.offline or (alert.at, alert.at)
+    span = f"{format_duration(end - start)} ({when(start)} to {when(end)})"
+    if alert.restarted:
+        lines = [f"sitrep itself wasn't running for {span}, so it couldn't send alerts then. It's back now."]
+    else:
+        lines = [f"Your internet was down for {span}, so sitrep couldn't send alerts then. It's back now."]
+    items = alert.items or {}
+    total = items.get("total", 0)
+    if total:
+        counts = ", ".join(f"{html.escape(name, quote=False)} {n}" for name, n in items.get("counts", {}).items())
+        lines.append(f"Meanwhile: {total} new item{'s' if total != 1 else ''} ({counts}).")
+        for item in items.get("top", []):
+            level = ITEM_MARKS.get(item["level"], "•")
+            at = f" ({when(item['ts'])})" if item.get("ts") else ""
+            text = f"{item['source']}: {item['title']}"
+            lines.append(f"{level} {html.escape(text[:200], quote=False)}{at}")
+    else:
+        lines.append("Nothing new came in meanwhile.")
+    shown = alert.shown or alert.level
+    reason = alert.shown_reason or alert.reason
+    lines.append(f"Now: {html.escape(sentence(_cut(reason)), quote=False)}")
+    if shown != alert.level and RANKED.get(shown.value, 0) > RANKED.get(alert.level.value, 0):
+        lines.append("That's from things that happened while sitrep couldn't send, so they didn't alert one by one.")
+    return lines
+
+
 def format_alert(alert: Alert, cfg: AlertsSettings, simulation: bool = False) -> str:
     """The message text, in Telegram's HTML style (only <b> and <a> are used)."""
-    mark, label = HEADLINES[alert.level]
-    reason = alert.reason if len(alert.reason) <= MAX_REASON else alert.reason[: MAX_REASON - 1] + "…"
+    level = alert.shown if alert.kind == "summary" and alert.shown in HEADLINES else alert.level
+    mark, label = HEADLINES[level]
+    reason = _cut(alert.reason)
     when = lambda ts: sydney_clock(ts, alert.at)  # noqa: E731
     lines = [SIMULATION_LINE] if simulation else []
-    lines.append(f"{mark} <b>sitrep: {label}</b>")
+    if alert.kind == "another":
+        lines.append(f"{mark} <b>sitrep: {label}, another event</b>")
+    else:
+        lines.append(f"{mark} <b>sitrep: {label}</b>")
 
-    if alert.kind == "back_online" and alert.offline:
-        start, end = alert.offline
-        lines.append(
-            f"Your internet was down for {format_duration(end - start)} ({when(start)} to {when(end)}), "
-            "so sitrep couldn't send alerts then. It's back now."
-        )
-        lines.append(f"Now: {html.escape(sentence(reason), quote=False)}")
+    if alert.kind == "summary":
+        lines += _summary_lines(alert, when)
+    elif alert.kind == "another":
+        lines.append(html.escape(sentence(reason), quote=False))
+        if alert.told_at:
+            lines.append(f"Still critical since {when(alert.told_at)}.")
     else:
         lines.append(html.escape(sentence(reason), quote=False))
         if alert.kind == "lowered" and alert.told in HEADLINES and alert.told_at:

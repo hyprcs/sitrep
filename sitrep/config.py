@@ -17,6 +17,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError, model_validator
 
 from . import __version__
+from .models import THEMES
 
 
 class Settings(BaseModel):
@@ -30,12 +31,69 @@ class ServerSettings(Settings):
     port: int = 8080
 
 
+class HomeLocation(Settings):
+    """Where home is, for "how far away" and the map. The default is the middle of
+    Macquarie Park (the ABS suburb point), not anyone's address."""
+
+    name: str = "Macquarie Park"
+    lat: float = Field(-33.77878, ge=-90, le=90)
+    lon: float = Field(151.12425, ge=-180, le=180)
+
+
 class HomeSettings(Settings):
     # Used in plain-English messages, e.g. "it could be your NBN line or Belong".
     isp_name: str = "your ISP"
     # The carrier whose network your ISP uses (Belong uses Telstra's, for example).
     # The network tiles mark it as "your network". Must match a carrier's name.
     carrier: str = ""
+    location: HomeLocation = Field(default_factory=HomeLocation)
+
+
+class MapSettings(Settings):
+    # Where `python -m sitrep map` saves the basemap, and where the map page reads it from.
+    tiles_path: str = "data/map/sydney.pmtiles"
+    # The area to download: west, south, east, north. The default covers Greater Sydney,
+    # from the Blue Mountains to the Central Coast.
+    bbox: list[float] = Field(default_factory=lambda: [149.97, -34.34, 151.64, -32.99], min_length=4, max_length=4)
+    # The most zoomed-in level to keep. 14 shows every street; each extra level about doubles the size.
+    max_zoom: int = Field(14, ge=6, le=15)
+    builds_url: str = "https://build-metadata.protomaps.dev/builds.json"
+    build_url: str = "https://build.protomaps.com/{build}"
+
+
+class TermsSettings(Settings):
+    """Emerging terms: words and two-word phrases suddenly much busier than usual."""
+
+    enabled: bool = True
+    # A term is flagged when, over the last window_hours...
+    window_hours: float = Field(2, gt=0)
+    # ...it has more than this many mentions,
+    min_mentions: int = Field(5, ge=1)
+    # more than this many times its usual for that long (from the last baseline_days days),
+    ratio: float = Field(3, gt=1)
+    baseline_days: float = Field(7, gt=0)
+    # from at least this many different sources (outlets, or Bluesky accounts),
+    min_sources: int = Field(2, ge=1)
+    # and it wasn't flagged in the last repeat_minutes.
+    repeat_minutes: float = Field(30, ge=0)
+    # Words never to treat as terms, on top of everyday English ones. Edit freely.
+    stopwords: list[str] = Field(default_factory=lambda: [
+        "sydney", "nsw", "new south wales", "australia", "australian", "australians", "aussie",
+        "people", "today", "tonight", "week", "news", "says", "said", "just", "like", "going", "really",
+        "know", "think", "good", "great", "time", "year", "years", "day", "days", "back", "want",
+    ])
+
+
+class ConvergenceSettings(Settings):
+    """Geographic convergence: several kinds of event in one small area at once."""
+
+    enabled: bool = True
+    # This many different kinds of event in one 2 km square or the squares around it...
+    min_kinds: int = Field(3, ge=2)
+    # ...within this many hours is a convergence.
+    window_hours: float = Field(2, gt=0)
+    # Posts only count as an event when this many different people post about the area.
+    social_min_people: int = Field(2, ge=1)
 
 
 class StorageSettings(Settings):
@@ -43,6 +101,8 @@ class StorageSettings(Settings):
     keep_minute_counts_days: float = 7
     keep_aggregates_days: float = 90
     keep_sample_posts_days: float = 7
+    # Headlines, warnings and other items each source has seen (never article text).
+    keep_items_days: float = 7
 
 
 class HttpSettings(Settings):
@@ -68,6 +128,25 @@ class ScoringSettings(Settings):
     category_critical_when_sources_elevated: dict[str, int] = Field(
         default_factory=lambda: {"social": 2}
     )
+    # A source whose last tries in a row have all failed shows as "fetch failing".
+    failing_after_tries: int = Field(2, ge=1)
+    # Two national signals only back each other up when their themes are the same or
+    # are listed here together. Set national_needs_related_themes to false to let any
+    # two national signals back each other up.
+    national_needs_related_themes: bool = True
+    related_themes: list[list[str]] = Field(
+        default_factory=lambda: [["internet", "cyber"], ["internet", "power"]]
+    )
+
+    @model_validator(mode="after")
+    def _themes_are_known(self) -> ScoringSettings:
+        for pair in self.related_themes:
+            unknown = [t for t in pair if t not in THEMES]
+            if len(pair) != 2 or unknown:
+                raise ValueError(
+                    f"related_themes entries are pairs of themes ({', '.join(THEMES)}); {pair} isn't"
+                )
+        return self
 
 
 class TelegramSettings(Settings):
@@ -89,6 +168,19 @@ class AlertsSettings(Settings):
     # After the internet comes back, say how long it was down (if it was down this long).
     report_internet_outages: bool = True
     internet_outage_min_minutes: float = Field(5, ge=0)
+    # An item first seen more than this long after its own timestamp is backlog: it's
+    # shown, but can't raise an alert. Slow sources get their poll interval plus their
+    # usual publishing delay instead, if that's longer.
+    recency_limit_minutes: float = Field(15, ge=0)
+    # No alerts this soon after sitrep starts, or after the internet comes back.
+    startup_grace_minutes: float = Field(2, ge=0)
+    # The same event can't alert again within this long.
+    repeat_after_minutes: float = Field(30, ge=0)
+    # If sitrep itself was down at least this long, say what came in meanwhile once it's back.
+    summary_after_restart_minutes: float = Field(5, ge=0)
+    summary_top_items: int = Field(5, ge=0)
+    # Elevated messages arrive silently unless this is true. Critical always makes a sound.
+    elevated_makes_sound: bool = False
     # A link to the dashboard to put in each message, such as http://ds920:8080.
     dashboard_url: str = ""
     telegram: TelegramSettings = Field(default_factory=TelegramSettings)
@@ -114,6 +206,9 @@ class Config(Settings):
     carriers: list[Carrier] = Field(default_factory=list)
     server: ServerSettings = Field(default_factory=ServerSettings)
     storage: StorageSettings = Field(default_factory=StorageSettings)
+    map: MapSettings = Field(default_factory=MapSettings)
+    terms: TermsSettings = Field(default_factory=TermsSettings)
+    convergence: ConvergenceSettings = Field(default_factory=ConvergenceSettings)
     http: HttpSettings = Field(default_factory=HttpSettings)
     scoring: ScoringSettings = Field(default_factory=ScoringSettings)
     alerts: AlertsSettings = Field(default_factory=AlertsSettings)

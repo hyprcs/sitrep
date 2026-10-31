@@ -30,13 +30,13 @@ from __future__ import annotations
 
 import asyncio
 import statistics
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Annotated, Any, Literal
 
 from pydantic import BeforeValidator, Field, model_validator
 
 from ..config import Carrier, Settings
-from ..models import Assessment, Category, Level
+from ..models import Assessment, Category, Level, national
 from ..util import format_duration
 from .base import AdapterContext, PollingAdapter, PollingSettings, SourceError, describe_error, get_json
 
@@ -182,6 +182,14 @@ def parse_signals(payload: Any) -> dict[tuple[str, str], Series]:
             except (KeyError, TypeError, ValueError) as exc:
                 raise SourceError(f"IODA sent a chart series sitrep can't read (missing {exc})") from exc
     return out
+
+
+def newest_point(series: Series) -> float | None:
+    """When the newest reading in a series was taken (None if it has no readings)."""
+    for i in range(len(series.values) - 1, -1, -1):
+        if series.values[i] is not None:
+            return series.start + i * series.step
+    return None
 
 
 def combine(parts: list[Series | None]) -> Series | None:
@@ -411,12 +419,16 @@ class IodaAdapter(PollingAdapter):
     link = "https://ioda.inetintel.cc.gatech.edu/country/AU"
     Settings = IodaSettings
     uses_carriers = True
+    scope = national("internet")
+    # IODA's active probing usually runs 10 to 30 minutes behind; its charts are fetched every 15.
+    content_budget_minutes = 90
     settings: IodaSettings
 
     def __init__(self, ctx: AdapterContext, settings: IodaSettings) -> None:
         super().__init__(ctx, settings)
         self._charts: dict[str, dict[str, Any] | None] = {}
         self._charts_at: float | None = None
+        self._newest: float | None = None  # the newest point in IODA's data that sitrep has seen
 
     def _groups(self) -> dict[str, list[str]]:
         """Entity codes to ask about, by IODA entity type, in config order."""
@@ -459,6 +471,7 @@ class IodaAdapter(PollingAdapter):
         series: dict[tuple[str, str], Series] = {}
         for payload in answers:
             series.update(parse_signals(payload))
+        self._newest = max(filter(None, [self._newest, *(newest_point(s) for s in series.values())]), default=None)
         charts: dict[str, dict[str, Any] | None] = {}
         for area in self.settings.areas:
             charts[f"{area.type}:{area.code}"] = normalise(series.get((area.type, area.code)))
@@ -493,4 +506,6 @@ class IodaAdapter(PollingAdapter):
             entity["chart"] = self._charts.get(entity["key"])
         result.details["charts_at"] = self._charts_at
         result.details["chart_hours"] = self.settings.signals_hours
-        return result
+        alert_times = [a.time for alerts in results for a in alerts]
+        content_at = max(filter(None, [self._newest, *alert_times]), default=None)
+        return replace(result, content_at=content_at)

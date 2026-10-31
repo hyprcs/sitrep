@@ -48,16 +48,21 @@ def test_starting_up_calm_sends_nothing():
     assert p.told == N
 
 
-def test_worse_news_goes_out_at_once_and_loudly():
+def test_worse_news_goes_out_at_once_and_only_critical_makes_a_sound():
     sent = feed(policy(), [(0, N), (1, E), (2, E), (5, C)])
-    assert [(m, a.kind, a.level, a.loud) for m, a in sent] == [(1, "raised", E, True), (5, "raised", C, True)]
+    assert [(m, a.kind, a.level, a.loud) for m, a in sent] == [(1, "raised", E, False), (5, "raised", C, True)]
     assert sent[1][1].told == E
+
+
+def test_elevated_can_make_a_sound_if_you_ask():
+    sent = feed(policy(elevated_makes_sound=True), [(0, N), (1, E)])
+    assert [(a.level, a.loud) for _, a in sent] == [(E, True)]
 
 
 def test_all_clear_waits_and_is_silent():
     p = policy(all_clear_after_minutes=30)
     sent = feed(p, [(0, N), (1, E), (20, N), (49, N), (50, N), (51, N)])
-    assert [(m, a.kind, a.level, a.loud) for m, a in sent] == [(1, "raised", E, True), (50, "lowered", N, False)]
+    assert [(m, a.kind, a.level, a.loud) for m, a in sent] == [(1, "raised", E, False), (50, "lowered", N, False)]
     assert sent[1][1].lowered_at == T0 + 20 * MIN
 
 
@@ -79,21 +84,31 @@ def test_a_short_internet_blip_sends_nothing():
     assert sent == []
 
 
-def test_a_long_outage_is_reported_when_the_internet_is_back():
-    sent = feed(policy(internet_outage_min_minutes=5), [(0, N), (1, OFFLINE), (34, OFFLINE), (35, N)])
+def test_a_long_outage_is_summarised_once_the_sources_have_caught_up():
+    sent = feed(policy(internet_outage_min_minutes=5), [(0, N), (1, OFFLINE), (34, OFFLINE), (35, N), (36, N), (37, N)])
     assert len(sent) == 1
     minute, alert = sent[0]
-    assert (minute, alert.kind, alert.level, alert.loud) == (35, "back_online", N, False)
+    assert (minute, alert.kind, alert.level, alert.loud) == (37, "summary", N, False)  # after the 2-minute grace
     assert alert.offline == (T0 + MIN, T0 + 35 * MIN)
 
 
-def test_back_online_into_trouble_is_loud():
-    sent = feed(policy(), [(0, N), (1, OFFLINE), (30, E)])
-    assert [(a.kind, a.level, a.loud) for _, a in sent] == [("back_online", E, True)]
+def test_back_online_into_critical_trouble_makes_a_sound():
+    sent = feed(policy(), [(0, N), (1, OFFLINE), (30, C), (32, C)])
+    assert [(a.kind, a.level, a.loud) for _, a in sent] == [("summary", C, True)]
+
+
+def test_back_online_into_backlog_is_one_silent_summary():
+    """The dashboard shows critical from backlog, but nothing new: one quiet message, no burst."""
+    p = policy()
+    feed(p, [(0, N), (1, OFFLINE)])
+    assert p.update(N, "calm", T0 + 30 * MIN, shown=E, shown_reason="ACSC advisory from 2 hours ago") is None
+    alert = p.update(N, "calm", T0 + 32 * MIN, shown=E, shown_reason="ACSC advisory from 2 hours ago")
+    assert (alert.kind, alert.level, alert.shown, alert.loud) == ("summary", N, E, False)
+    assert p.update(N, "calm", T0 + 40 * MIN, shown=E) is None
 
 
 def test_outage_reports_can_be_switched_off():
-    sent = feed(policy(report_internet_outages=False), [(0, N), (1, OFFLINE), (30, N), (31, E)])
+    sent = feed(policy(report_internet_outages=False), [(0, N), (1, OFFLINE), (30, N), (32, E)])
     assert [(a.kind, a.level) for _, a in sent] == [("raised", E)]
 
 
@@ -155,13 +170,38 @@ def test_all_clear_message():
 
 
 def test_back_online_message():
-    alert = Alert("back_online", N, "Nothing unusual from any source", T0 + 35 * MIN,
+    alert = Alert("summary", N, "Nothing unusual from any source", T0 + 35 * MIN,
                   told=N, told_at=T0 - 3600, offline=(T0 + MIN, T0 + 35 * MIN), loud=False)
     assert format_alert(alert, AlertsSettings()).splitlines() == [
         "✅ <b>sitrep: All clear</b>",
         "Your internet was down for 34 minutes (2:01 pm to 2:35 pm), so sitrep couldn't send alerts then. "
         "It's back now.",
+        "Nothing new came in meanwhile.",
         "Now: Nothing unusual from any source.",
+    ]
+
+
+def test_offline_summary_lists_what_came_in_and_explains_the_dashboard():
+    items = {"total": 3, "counts": {"AEMO electricity grid": 2, "ACSC alerts and advisories": 1},
+             "top": [{"source": "AEMO electricity grid", "title": "Actual LOR2 in NSW", "level": "elevated",
+                      "ts": T0 + 10 * MIN, "url": None}]}
+    alert = Alert("summary", N, "Nothing new", T0 + 35 * MIN, offline=(T0 + MIN, T0 + 33 * MIN), shown=E,
+                  shown_reason="AEMO electricity grid: Actual LOR2 in NSW", items=items, loud=False, restarted=True)
+    lines = format_alert(alert, AlertsSettings()).splitlines()
+    assert lines[0] == "⚠️ <b>sitrep: Elevated</b>"  # what the dashboard shows
+    assert lines[1].startswith("sitrep itself wasn't running for 32 minutes")
+    assert lines[2] == "Meanwhile: 3 new items (AEMO electricity grid 2, ACSC alerts and advisories 1)."
+    assert lines[3] == "⚠️ AEMO electricity grid: Actual LOR2 in NSW (2:10 pm)"
+    assert lines[4] == "Now: AEMO electricity grid: Actual LOR2 in NSW."
+    assert "didn't alert one by one" in lines[5]
+
+
+def test_another_event_message():
+    alert = Alert("another", C, "Load shedding in NSW", T0 + 20 * MIN, told=C, told_at=T0)
+    assert format_alert(alert, AlertsSettings()).splitlines() == [
+        "🛑 <b>sitrep: Critical, another event</b>",
+        "Load shedding in NSW.",
+        "Still critical since 2:00 pm.",
     ]
 
 

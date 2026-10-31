@@ -1,0 +1,35 @@
+[
+ {
+  "Title": "Exampleland - Level 4: Do Not Travel",
+  "Link": "https://travel.example/exampleland.html",
+  "Category": [
+   "EX"
+  ],
+  "Summary": "<p>Made up for the tests.</p>",
+  "id": "https://travel.example/exampleland.html",
+  "Published": "2026-10-22T20:00:00-04:00",
+  "Updated": "2026-10-22T20:00:00-04:00"
+ },
+ {
+  "Title": "Australia - Level 1: Exercise Normal Precautions",
+  "Link": "https://travel.example/australia.html",
+  "Category": [
+   "AS"
+  ],
+  "Summary": "<p>Exercise normal precautions in <b>Australia</b>. Made up for the tests.</p>",
+  "id": "https://travel.example/australia.html",
+  "Published": "2026-08-17T20:00:00-04:00",
+  "Updated": "2026-08-17T20:00:00-04:00"
+ },
+ {
+  "Title": "Austria - Level 1: Exercise Normal Precautions",
+  "Link": "https://travel.example/austria.html",
+  "Category": [
+   "AU"
+  ],
+  "Summary": "<p>Austria's code is AU, which is why Australia's is AS.</p>",
+  "id": "https://travel.example/austria.html",
+  "Published": "2026-06-01T20:00:00-04:00",
+  "Updated": "2026-06-01T20:00:00-04:00"
+ }
+]

@@ -8,3 +8,4 @@ PyYAML==6.0.3
 defusedxml==0.7.1
 websockets==17.2
 certifi==2026.10.23
+pmtiles==3.8.1
