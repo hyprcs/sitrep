@@ -3,6 +3,7 @@
 Other commands:
   python -m sitrep telegram   check the Telegram set-up and send a test message
   python -m sitrep simulate   a 7-minute pretend emergency, to watch the dashboard and alerts work
+  python -m sitrep simulate --story cyber   the same, but the emergency is a cyber attack on a telco
   python -m sitrep simulate --replay   replay realistic scenarios and say which would alert
   python -m sitrep map        download the Greater Sydney basemap (about 40 MB) for the map page
 """
@@ -23,7 +24,7 @@ from .config import Config, ConfigError, load_config
 from .runtime import Runtime
 from .scenarios import SCENARIOS
 from .scenarios import main as replay_scenarios
-from .simulate import SCRIPT, SimulatedRuntime, simulation_config
+from .simulate import STORIES, SimulatedRuntime, simulation_config
 from .telegram import setup_command
 
 
@@ -42,6 +43,9 @@ def main() -> int:
                              "simulate: a pretend emergency, to watch the dashboard and alerts work; "
                              "map: download the Greater Sydney basemap for the map page")
     parser.add_argument("--port", type=int, help="simulate: the port for its dashboard (default: one above sitrep's)")
+    parser.add_argument("--story", choices=list(STORIES), default="outage",
+                        help="simulate: which pretend emergency to play: outage (a telco outage, the default) or "
+                             "cyber (a cyber attack on a telco)")
     parser.add_argument("--replay", nargs="*", metavar="SCENARIO",
                         help="simulate: replay scenarios on a pretend clock and say which would alert, instead of "
                              f"starting a dashboard. Scenarios: {', '.join(s.name for s in SCENARIOS)} (default: all)")
@@ -57,7 +61,7 @@ def main() -> int:
             return replay_scenarios(cfg, args.replay)
         if args.command == "simulate":
             cfg = simulation_config(cfg, args.port)
-            runtime = SimulatedRuntime(cfg)
+            runtime = SimulatedRuntime(cfg, script=STORIES[args.story])
         else:
             runtime = Runtime(cfg)
     except ConfigError as exc:
@@ -76,7 +80,7 @@ def main() -> int:
         "Dashboard: http://localhost:%d (or this computer's address on your network)", cfg.server.port
     )
     if args.command == "simulate":
-        minutes = round(SCRIPT[-1].at / 60)
+        minutes = round(runtime.simulation.script[-1].at / 60)
         telegram_on = (
             "Telegram messages are real, and marked SIMULATION." if cfg.alerts.telegram.configured
             else "Telegram isn't set up, so no messages will be sent."

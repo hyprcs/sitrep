@@ -11,6 +11,9 @@ code all run as normal, on shorter timings so the whole story takes about 7 minu
 
 Telegram alerts are real messages to your chat, each marked "SIMULATION: not a real alert".
 
+`python -m sitrep simulate --story cyber` plays a different story instead: a cyber attack
+on a made-up telco, from a ransomware gang's claim to Australia dropping off the internet.
+
 The stand-ins can also play other scripts: `python -m sitrep simulate --replay` runs a set of
 realistic scenarios on a pretend clock with the real timings, and prints which ones would
 alert (see scenarios.py). Nothing is sent and no dashboard is started.
@@ -140,6 +143,80 @@ SCRIPT = (
 )
 
 
+def _sydney_item(source: str, text: str, outlet: str | None = None) -> Item:
+    """A headline (with an outlet) or a post about Sydney as a whole, as the real sources store them."""
+    details: dict[str, Any] = {"lat": None, "lon": None, "sydney_wide": True}
+    if outlet:
+        details |= {"outlet": outlet, "places": ["Sydney"]}
+    return Item(source, text, 1, details=details)
+
+
+# A cyber attack on a made-up telco: python -m sitrep simulate --story cyber
+CYBER_SCRIPT = (
+    Step(0, "Everything is normal",
+         "All sources report normal. This story is a cyber attack on a big Australian telco, made up from "
+         "start to finish: Example Telecom isn't a real company. Keep an eye on the overall status at the top.",
+         _all_normal()),
+    Step(30, "A ransomware gang lists a telco",
+         "ransomware.live sees a gang claim Example Telecom as a victim. Its row turns Elevated, but a "
+         "listing is only the gang's claim, and it's one category (cyber) on its own, so the overall level "
+         "stays normal and nothing is sent.",
+         {"ransomware": Report(Level.ELEVATED, "New Australian ransomware victim in Telecoms: Example Telecom "
+                                               "(Telecommunication), listed by examplegang (2 minutes ago)",
+                               key="ransomware:example-telecom")}),
+    Step(75, "ACSC confirms a cyber incident",
+         "The Australian Cyber Security Centre publishes an alert about a cyber incident at a telco. That's a "
+         "second category (official) about the same thing (a cyber attack in Australia), so the overall level "
+         "goes to Elevated and Telegram gets a message. Elevated messages arrive silently.",
+         {"acsc": Report(Level.ELEVATED, 'New ACSC alert: "Cyber incident affecting an Australian '
+                                         'telecommunications provider" (mentions telecommunications)',
+                         key="acsc:telco")}),
+    Step(120, "People notice",
+         "Posts about a cyber attack spike on Bluesky, and the news picks it up. The headlines and posts are "
+         "grouped into one story, shown with the other stories. It's all the same event, so the level stays "
+         "Elevated and no new message is sent.",
+         {"bluesky": Report(Level.ELEVATED, '"Cyber attack in Australia" is spiking: 27 people in 5 minutes, '
+                                            "usually about 1", scope=national("cyber"), key="bluesky:cyber_attack")},
+         items=(
+             _sydney_item("news", "Example Telecom hit by cyber attack, Sydney customers told to watch for scams",
+                          outlet="ABC News"),
+             _sydney_item("news", "Example Telecom confirms cyber attack as Sydney customers report problems",
+                          outlet="Sydney Morning Herald"),
+             _sydney_item("bluesky", "just got a text from Example Telecom about a cyber attack?? anyone else in "
+                                     "Sydney get this"),
+             _sydney_item("bluesky", "Example Telecom app won't load at all. Sydney news says it's a cyber attack"),
+         )),
+    Step(165, "The telco's network starts dropping",
+         "IODA and Cloudflare Radar see Example Telecom's network dropping. Internet trouble and a cyber attack "
+         "are related, so this backs up the rest, but it's still one telco: the level stays Elevated and "
+         "nothing new is sent.",
+         {"ioda": (Level.ELEVATED, "Example Telecom (AS64500) is dropping on 2 methods"),
+          "radar": (Level.ELEVATED, "Cloudflare reports an outage on Example Telecom (AS64500): Cyber attack")}),
+    Step(210, "Australia's internet goes down",
+         "The outage is big enough that IODA sees Australia as a whole drop. One category is now critical, so "
+         "the overall level goes to Critical and Telegram gets a second alert, with a sound. This is the only "
+         "way a cyber attack makes sitrep critical: warnings, claims and posts stop at Elevated, so it takes "
+         "something sitrep can measure.",
+         {"ioda": (Level.CRITICAL, "Australia is down on 2 methods; Example Telecom (AS64500) is down on 3 methods"),
+          "radar": (Level.ELEVATED, "Traffic in Australia at 61% of last week for 5 minutes; Cloudflare reports "
+                                    "an outage on Example Telecom (AS64500): Cyber attack")}),
+    Step(270, "The sources calm down",
+         "All sources are back to normal, but the news story keeps counting until its newest headline or post "
+         "is 2 hours old, and headlines plus posts about Sydney are Elevated on their own. So after 1 calm "
+         "minute (15 in real life) the level comes down to Elevated, not Normal, and 1 minute later (30 in "
+         "real life) Telegram gets a silent message saying so. In real life the all-clear would follow once "
+         "the story is 2 hours old.",
+         _all_normal()),
+    Step(420, "Simulation finished",
+         "That's the whole story. Nothing on this page was real. Stop the simulation with Ctrl+C in "
+         "the window it's running in.",
+         {}),
+)
+
+# The stories simulate mode can play: python -m sitrep simulate --story cyber
+STORIES = {"outage": SCRIPT, "cyber": CYBER_SCRIPT}
+
+
 class StandInSettings(AdapterSettings):
     interval_seconds: float = 30  # the uptime strip asks the probes for this
 
@@ -262,10 +339,11 @@ class Simulation:
 class SimulatedRuntime(Runtime):
     """A Runtime whose sources are all stand-ins, played by a Simulation."""
 
-    def __init__(self, cfg: Config, clock: Callable[[], float] = time.time) -> None:
+    def __init__(self, cfg: Config, clock: Callable[[], float] = time.time,
+                 script: tuple[Step, ...] = SCRIPT) -> None:
         super().__init__(cfg, clock)
         self.specs = [(stand_in_for(real), StandInSettings()) for real in REGISTRY.values()]
-        self.simulation = Simulation(self.clock)
+        self.simulation = Simulation(self.clock, script)
 
     def setup(self) -> None:
         fresh_database(self.cfg.storage.db_path)

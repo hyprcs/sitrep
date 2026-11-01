@@ -1276,6 +1276,32 @@ Stop it with **Ctrl+C**. To use a different port: `python -m sitrep simulate --p
 With Docker:
 `docker compose run --rm -p 8081:8081 sitrep python -m sitrep simulate`.
 
+### A practice cyber attack
+
+```powershell
+.venv\Scripts\python -m sitrep simulate --story cyber
+```
+
+The same separate copy on <http://localhost:8081>, playing a different story: a cyber
+attack on Example Telecom, a made-up telco. It also takes about 7 minutes:
+
+| Step | What happens | Telegram |
+|---|---|---|
+| 1 | Everything is normal | nothing |
+| 2 | ransomware.live sees a gang list Example Telecom as a victim | nothing: a listing is only a claim, and one category isn't enough |
+| 3 | ACSC publishes an alert about a cyber incident at a telco: two categories agree about a cyber attack in Australia | **Elevated** alert, silently |
+| 4 | "Cyber attack" posts spike on Bluesky and two headlines appear; they're grouped into one story | nothing: it's the same event |
+| 5 | IODA and Cloudflare Radar see Example Telecom's network dropping | nothing: still the same event |
+| 6 | IODA sees Australia as a whole drop | **Critical** alert, with a sound |
+| 7 | The sources calm down, but the news story still counts | **Elevated**, silently, about 2 minutes later ("It was Critical from ... until ...") |
+| 8 | Finished | |
+
+It shows how sitrep treats cyber news: ACSC warnings, ransomware listings and posts never
+go past Elevated on their own (ACSC titles routine items "critical", and a listing is a
+gang's claim). Only something sitrep can measure, like Australia dropping off the
+internet, makes it Critical. And a news story keeps the level at Elevated until its newest
+headline or post is 2 hours old, so in real life the all-clear comes later.
+
 ### Replaying scenarios: would this have alerted?
 
 ```powershell
@@ -1309,6 +1335,7 @@ touched. The scenarios so far:
 | `foreign-advice-raised` | The US raises Australia from Level 1 to Level 2 | Critical (with a sound) |
 | `foreign-advice-routine` | The US reissues its advisory at the same level; the FCDO adds a bushfire-season note | No alert |
 | `trains-down` | A power failure stops trains on every line; Bluesky posts about an incident in Sydney spike | Elevated (silent): both are about Sydney as a whole |
+| `cyber-attack-escalates` | The practice cyber attack with real timings: a gang lists a telco, ACSC confirms, people post, IODA sees the telco and then Australia drop | Elevated (silent), then Critical (with a sound), then a silent step down to Elevated while the news story lasts, then the all-clear |
 
 To replay just one: `python -m sitrep simulate --replay optus-outage`.
 
@@ -1401,7 +1428,7 @@ sitrep/
   scoring.py      turns source levels into category levels and the overall status
   alerts.py       decides when to send an alert; the Notifier base class
   telegram.py     sends alerts through Telegram
-  simulate.py     simulate mode
+  simulate.py     simulate mode (its two stories: a telco outage and a cyber attack)
   basemap.py      python -m sitrep map: downloads the Greater Sydney basemap
   geo.py          distances and the 2 km map grid
   places.py       finding NSW suburbs in headlines (the list is in data/)

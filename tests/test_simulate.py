@@ -10,7 +10,7 @@ from sitrep.alerts import Alert, Alerts, Notifier
 from sitrep.config import AlertsSettings, Config, ServerSettings, StorageSettings
 from sitrep.db import Database
 from sitrep.models import Overall
-from sitrep.simulate import SCRIPT, SimulatedRuntime, fresh_database, simulation_config
+from sitrep.simulate import CYBER_SCRIPT, SCRIPT, SimulatedRuntime, fresh_database, simulation_config
 from sitrep.telegram import SIMULATION_LINE, format_alert
 
 T0 = 1_800_000_000.0
@@ -92,6 +92,42 @@ async def test_the_whole_story(tmp_path):
     assert recorder.alerts[3][1].items["total"] == 1  # the ACSC item that came in while it was offline
     assert "Telstra (AS1221) is dropping on 2 methods (simulated)" in recorder.alerts[0][1].reason
     assert not (tmp_path / "sitrep.db").exists()  # the real database was never opened
+
+
+async def test_the_cyber_attack_story(tmp_path):
+    now = [T0]
+    runtime = SimulatedRuntime(simulation_config(real_config(tmp_path)), clock=lambda: now[0], script=CYBER_SCRIPT)
+    runtime.setup()
+    recorder = Recorder(runtime.db)
+    runtime.alerts = Alerts(runtime.cfg.alerts, runtime.db, [recorder], started_at=T0)
+    sim = runtime.simulation
+
+    levels = {}
+    for second in range(0, int(CYBER_SCRIPT[-1].at) + 10, 5):
+        now[0] = T0 + second
+        for index in sim.due(now[0]):
+            sim.apply(runtime, index)
+        runtime.evaluate()
+        levels[second] = runtime.tracker.current.level
+    await runtime.stop()
+
+    assert levels[70] == Overall.NORMAL  # a ransomware listing alone isn't enough
+    assert levels[100] == Overall.ELEVATED  # ACSC backs it up
+    assert levels[205] == Overall.ELEVATED  # posts, news and one telco dropping: still the same event
+    assert levels[230] == Overall.CRITICAL  # Australia drops: something measured
+    assert levels[400] == Overall.ELEVATED  # the news story outlasts the sources
+
+    story = [(round(at), a.kind, a.level, a.loud) for at, a in recorder.alerts]
+    assert [(kind, level, loud) for _, kind, level, loud in story] == [
+        ("raised", Overall.ELEVATED, False),
+        ("raised", Overall.CRITICAL, True),
+        ("lowered", Overall.ELEVATED, False),
+    ]
+    times = [at for at, *_ in story]
+    assert 75 < times[0] <= 90 and 210 < times[1] <= 225 and 330 < times[2] < 420
+    assert "Example Telecom" in recorder.alerts[0][1].reason and "ACSC" in recorder.alerts[0][1].reason
+    assert "Story" in recorder.alerts[2][1].reason
+    assert not (tmp_path / "sitrep.db").exists()
 
 
 async def test_status_for_the_dashboard(tmp_path):

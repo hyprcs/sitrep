@@ -360,6 +360,37 @@ SCENARIOS: tuple[Scenario, ...] = (
         expect=(("raised", Overall.ELEVATED, False), ("lowered", Overall.NORMAL, False)),
     ),
     Scenario(
+        "cyber-attack-escalates", "A cyber attack on a telco takes Australia offline",
+        "The live cyber story (simulate --story cyber) with real timings. A gang lists a telco, ACSC confirms "
+        "a cyber incident (Elevated), people post and the news picks it up, then IODA sees the telco and then "
+        "Australia drop (Critical). The sources recover half an hour later, but the news story keeps counting "
+        "until its newest item is 2 hours old, so the level steps down to Elevated first and later to Normal.",
+        (
+            CALM,
+            at(5, "ransomware.live: a telco listed", {"ransomware": Report(
+                E, "New Australian ransomware victim in Telecoms: Example Telecom (Telecommunication), listed by "
+                   "examplegang (2 minutes ago)", key="ransomware:example-telecom")}),
+            at(20, "ACSC: cyber incident at a telco", {"acsc": Report(
+                E, 'New ACSC alert: "Cyber incident affecting an Australian telecommunications provider" '
+                   "(mentions telecommunications)", key="acsc:telco")}),
+            at(30, "Bluesky and the news: people notice", {"bluesky": Report(
+                E, '"Cyber attack in Australia" is spiking: 27 people in 5 minutes, usually about 1',
+                scope="national:cyber", key="bluesky:cyber_attack")}, items=(
+                headline("ABC News", "Example Telecom hit by cyber attack, Sydney customers told to watch for scams"),
+                post("Example Telecom app won't load at all. Sydney news says it's a cyber attack"),
+            )),
+            at(45, "IODA and Radar: the telco's network drops", {
+                "ioda": Report(E, "Example Telecom (AS64500) is dropping on 2 methods"),
+                "radar": Report(E, "Cloudflare reports an outage on Example Telecom (AS64500): Cyber attack")}),
+            at(60, "IODA: Australia down", {
+                "ioda": Report(C, "Australia is down on 2 methods; Example Telecom (AS64500) is down on 3 methods")}),
+            at(90, "The sources recover", _all_normal()),
+        ),
+        end_minutes=300,
+        expect=(("raised", Overall.ELEVATED, False), ("raised", Overall.CRITICAL, True),
+                ("lowered", Overall.ELEVATED, False), ("lowered", Overall.NORMAL, False)),
+    ),
+    Scenario(
         "sydney-cloud-outage", "AWS Sydney goes down",
         "AWS posts a service disruption for EC2 in Sydney. Your line and the telcos are fine, so on its own "
         "that's one category elevated: nothing to alert on. Then people start posting that sites are down "
@@ -562,6 +593,8 @@ def describe(outcome: Outcome) -> str:
         lines.append("  Messages: none")
     for alert in outcome.alerts:
         kind = KIND_WORDS.get(alert.kind, alert.kind)
+        if alert.kind == "lowered" and alert.level != Overall.NORMAL:  # a step down isn't an all clear
+            kind = f"down from {LEVEL_WORDS[alert.told]}" if alert.told in LEVEL_WORDS else "down"
         what = LEVEL_WORDS[alert.shown or alert.level] if alert.kind == "summary" else LEVEL_WORDS[alert.level]
         sound = "with a sound" if alert.loud else "silent"
         head = f"{what}{', ' + kind if kind else ''}"
