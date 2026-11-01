@@ -76,6 +76,42 @@ def test_sydney_wide_items_group_with_each_other_only():
     assert [len(s.members) for s in stories] == [2, 1]
 
 
+def test_posts_are_matched_against_the_headline_not_other_posts():
+    # From 1 Nov 2026: a thunderstorm post joined a story about police rifles because it shared
+    # "eastern" and "far" with a post that had joined through the headline.
+    stories = group([
+        member("news:a", "mainstream", "NSW police will be armed with military-style rifles from Sunday",
+               where=None, at=NOW - 900),
+        member("bluesky:1", "social", "Minns has given machine guns and military rifles to police in the far eastern suburbs",
+               where=None, at=NOW - 800),
+        member("bluesky:2", "social", "Thunderstorms stretched far and wide across eastern Australia", where=None, at=NOW - 700),
+    ])
+    assert [[m.key for m in s.members] for s in stories] == [["news:a", "bluesky:1"], ["bluesky:2"]]
+
+
+def test_a_story_of_posts_only_is_matched_against_its_first_post():
+    stories = group([
+        member("bluesky:1", "social", "smoke and fire near the station", CBD, at=NOW - 900),
+        member("bluesky:2", "social", "fire trucks lined up everywhere", CBD, at=NOW - 800),
+        member("bluesky:3", "social", "food trucks lined up for the festival", CBD, at=NOW - 700),
+        member("news:a", "mainstream", "Fire breaks out near Town Hall station", CBD, at=NOW - 600),
+    ])
+    assert [[m.key for m in s.members] for s in stories] == [["bluesky:1", "bluesky:2", "news:a"], ["bluesky:3"]]
+
+
+def test_police_alone_only_ties_together_items_pinned_to_a_place():
+    sydney_wide = group([
+        member("news:a", "mainstream", "NSW police will be armed with military-style rifles from Sunday", where=None),
+        member("news:b", "mainstream", "Police car pursuit ends on golf course in Sydney's east", where=None),
+    ])
+    assert len(sydney_wide) == 2
+    (placed,) = group([
+        member("news:a", "mainstream", "Heavy police presence at a CBD shopping centre", CBD),
+        member("bluesky:1", "social", "loads of officers near Westfield right now", CBD),
+    ])
+    assert len(placed.members) == 2
+
+
 def test_a_story_keeps_its_id_as_it_grows():
     first = group([member("livetraffic:1", "official", "Crash: M2 Motorway")])[0].id
     grown = group([member("livetraffic:1", "official", "Crash: M2 Motorway"),

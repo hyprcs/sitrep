@@ -1057,6 +1057,13 @@ ones about the same event. Two items are the same story when both hold:
 - **overlapping words:** two distinctive words in common, or the same event word (crash,
   fire, storm, flood, shooting, stabbing, evacuation, lockdown, explosion, outage, siege,
   collapse, train, police), where "bushfire" and "blaze" both count as "fire", and so on.
+  "Police" on its own only counts for items pinned to a place: so much Sydney news
+  mentions police that it can't tie two items about Sydney as a whole together.
+
+A new item is checked against the story's first item, its headlines and its official
+items, never against Bluesky posts that joined later. Otherwise a story drifts from post to
+post (a storm post joining because it shared two words with a post that shared one with
+the headline) and stays "active" for as long as anyone keeps posting.
 
 Corroboration counts **kinds of source, not outlets**: three outlets running the same wire
 story are one kind. An official item only counts when it matters on its own: a major Live

@@ -8,10 +8,15 @@ warnings, hazards and disruptions (official), and Bluesky posts that name a Sydn
   Sydney as a whole; and
 - overlapping words: two distinctive words in common, or the same "event word" (crash,
   fire, storm, flood, shooting, stabbing, evacuation, lockdown, explosion, outage, siege,
-  collapse, train), where "bushfire" and "blaze" both count as "fire", and so on.
+  collapse, train, police), where "bushfire" and "blaze" both count as "fire", and so on.
+  "Police" alone only counts for items pinned to a place: it's in too many headlines to
+  tie two items about Sydney as a whole together.
 
 An item joins the first story it matches, oldest first; a story's first item names it, so
-it keeps the same id as it grows.
+it keeps the same id as it grows. A new item is matched against the story's first item,
+headlines and official items, never against posts that joined later. Otherwise a story
+drifts: a post shares two words with a post that shared one with the headline, and so on,
+until it's about something else.
 
 Corroboration counts kinds of source, not outlets: three outlets running the same wire
 story are still one kind. And an official item only counts when it matters on its own (a
@@ -67,6 +72,9 @@ EVENTS = {
     "train": {"train", "trains", "rail", "railway"},
     "police": {"police", "officers", "tactical", "riot"},
 }
+# Event words too common to tie two items together on their own unless both are pinned to
+# a place: most Sydney crime news mentions police, so it can't tell two Sydney-wide items apart.
+NEEDS_A_PLACE = {"police"}
 # A story counts towards the status while its newest item is this recent. After that it's
 # still shown (for WINDOW_HOURS) but no longer raises anything.
 ACTIVE_HOURS = 2
@@ -150,6 +158,13 @@ class Story:
         return self.members[0]
 
     @property
+    def anchors(self) -> list[Member]:
+        """What a new item has to match: the story's first item, headlines and official items.
+        Never the posts that joined later, so a story can't drift from post to post onto
+        something else."""
+        return [m for i, m in enumerate(self.members) if i == 0 or m.source_type != "social"]
+
+    @property
     def placed(self) -> Member | None:
         return next((m for m in self.members if m.cell is not None), None)
 
@@ -202,27 +217,26 @@ class Story:
         return f"Story in {self.where} ({kinds}): {self.title}"
 
 
-def same_place(item: Member, story: Story) -> bool:
-    if item.cell is None:
-        return story.sydney_wide and item.sydney_wide
-    for m in story.members:
-        if m.cell is None:
-            continue
-        if item.place and item.place == m.place:
-            return True
-        if abs(item.cell[0] - m.cell[0]) <= 1 and abs(item.cell[1] - m.cell[1]) <= 1:
-            return True
-    return False
+def same_place(a: Member, b: Member) -> bool:
+    """The same suburb, the same or a neighbouring 2 km square, or both about Sydney as a whole."""
+    if a.cell is None or b.cell is None:
+        return a.cell is None and b.cell is None
+    if a.place and a.place == b.place:
+        return True
+    return abs(a.cell[0] - b.cell[0]) <= 1 and abs(a.cell[1] - b.cell[1]) <= 1
+
+
+def same_words(a: Member, b: Member) -> bool:
+    """Two distinctive words in common, or the same event word."""
+    shared = a.words & b.words
+    events = shared & EVENTS.keys()
+    if a.cell is None:
+        events -= NEEDS_A_PLACE
+    return len(shared) >= 2 or bool(events)
 
 
 def same_story(item: Member, story: Story) -> bool:
-    if not same_place(item, story):
-        return False
-    for m in story.members:
-        shared = item.words & m.words
-        if len(shared) >= 2 or shared & EVENTS.keys():
-            return True
-    return False
+    return any(same_place(item, a) and same_words(item, a) for a in story.anchors)
 
 
 def group(members: list[Member]) -> list[Story]:
