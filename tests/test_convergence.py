@@ -109,9 +109,14 @@ def test_the_engine_reads_stored_items_and_posts_and_keeps_post_text_private():
                     details=details)
 
     class Post:
-        def __init__(self, n):
+        def __init__(self, n, notable=True):
             self.cell, self.lat, self.lon = cell_of(*KELLYVILLE), *KELLYVILLE
             self.at, self.title, self.place, self.alertable = NOW - 300, f"smoke over Kellyville ({n})", "Kellyville", True
+            self.notable = notable
+
+    # A post sharing a link is passing on news, so it isn't one of the 2 people needed.
+    sharing = Convergence(db, S, lambda: NOW, posts=lambda since: [("a", Post(1)), ("b", Post(2, notable=False))])
+    assert sharing.update(NOW) == []
 
     engine = Convergence(db, S, lambda: NOW, posts=lambda since: [("a", Post(1)), ("b", Post(2))])
     (spot,) = engine.update(NOW)

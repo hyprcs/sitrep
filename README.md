@@ -1053,7 +1053,8 @@ hazards, train disruptions, and Bluesky posts that name a Sydney place) and grou
 ones about the same event. Two items are the same story when both hold:
 
 - **the same place:** the same suburb, the same or a neighbouring 2 km square, or both
-  about Sydney as a whole; and
+  about Sydney as a whole (they name Sydney itself: naming only NSW isn't enough, since a
+  storm "in NSW" is as likely to be on the Southern Tablelands); and
 - **overlapping words:** two distinctive words in common, or the same event word (crash,
   fire, storm, flood, shooting, stabbing, evacuation, lockdown, explosion, outage, siege,
   collapse, train, police), where "bushfire" and "blaze" both count as "fire", and so on.
@@ -1069,7 +1070,9 @@ Corroboration counts **kinds of source, not outlets**: three outlets running the
 story are one kind. An official item only counts when it matters on its own: a major Live
 Traffic hazard, an RFS Watch and Act or Emergency Warning, a BoM severe warning for Sydney,
 or an unplanned train disruption. Routine ones can still join a story; they just don't
-count as "official".
+count as "official". Likewise, a Bluesky post that shares a link (a link card, or a link in
+its text) can join a story but doesn't count as "social": it's passing on an article, often
+from an account that reposts headlines automatically, not someone saying what they can see.
 
 | A story with | Status |
 |---|---|
@@ -1130,7 +1133,7 @@ the last 2 hours of events in their squares. The kinds are:
 | road hazard | a Live Traffic hazard that's unplanned or major (not roadworks or events) |
 | train disruption | an unplanned train disruption, at the stations its message names |
 | news | a headline naming a suburb there |
-| posts | Bluesky posts from **at least 2 different people** naming a suburb there |
+| posts | Bluesky posts from **at least 2 different people** naming a suburb there (posts that share a link don't count) |
 | aircraft circling | a helicopter, or an aircraft below 3,000 ft, circling one spot for 10 minutes (see [Aircraft over Sydney](#aircraft-over-sydney)) |
 
 When 3 or more different kinds land in one square or the squares around it, that's a

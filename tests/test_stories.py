@@ -171,6 +171,16 @@ def test_old_stories_stop_counting_but_stay_on_show():
     assert s.assessment(NOW).details["stories"][0]["active"] is False
 
 
+def test_posts_sharing_a_link_join_but_dont_count_as_social():
+    # From 1 Nov 2026: a bot reposting a headline with a link card made a "news + social" story.
+    s = stories_of(member("news:a", "mainstream", "Police car pursuit ends on golf course in Sydney's east", where=None),
+                   member("bluesky:bot", "social", "Two charged after police chase ends on golf course in Sydney's east",
+                          where=None, notable=False))
+    (story,) = s.stories
+    assert len(story.members) == 2 and story.kinds() == {"mainstream"}
+    assert s.views(NOW) == []
+
+
 def test_backlog_cant_raise_an_alert():
     s = stories_of(member("livetraffic:1", "official", "Crash: M2 Motorway", alertable=False),
                    member("news:a", "mainstream", "M2 crash at Macquarie Park"))
@@ -201,13 +211,19 @@ def test_bluesky_keeps_sydney_posts_in_memory_and_forgets_deleted_ones():
     db = Database(":memory:")
     ctx = AdapterContext(Config(), db, StatusBoard(db, lambda: NOW), None, lambda: NOW)
     adapter = BlueskyAdapter(ctx, BlueskySettings())
-    for i, text in enumerate(["huge crash on the M2 at Macquarie Park", "lovely day in Perth", "storms hitting Sydney now"]):
+    for i, (text, link) in enumerate([("huge crash on the M2 at Macquarie Park", False), ("lovely day in Perth", False),
+                                      ("storms hitting Sydney now", False), ("NSW police to carry rifles", False),
+                                      ("Storm damage across Sydney (news link)", True)]):
         adapter._remember_for_stories(Post(uri=f"at://did:plc:u{i}/app.bsky.feed.post/{i}", author=f"did:plc:u{i}",
-                                           time=NOW - 60, text=text, match_text=text, url=f"https://bsky.app/{i}"))
+                                           time=NOW - 60, text=text, match_text=text, url=f"https://bsky.app/{i}",
+                                           shares_link=link))
     kept = adapter.recent_posts(NOW - 3600)
-    assert [(m.place, m.sydney_wide) for m in kept] == [("Macquarie Park", False), (None, True)]
+    # Perth isn't Sydney, and naming only NSW isn't naming Sydney. The link post is kept, but doesn't count.
+    assert [(m.place, m.sydney_wide, m.notable) for m in kept] == [
+        ("Macquarie Park", False, True), (None, True, True), (None, True, False)]
     adapter._forget_for_stories(lambda author, m: author == "did:plc:u0")
-    assert [m.title for m in adapter.recent_posts(NOW - 3600)] == ["storms hitting Sydney now"]
+    assert [m.title for m in adapter.recent_posts(NOW - 3600)] == [
+        "storms hitting Sydney now", "Storm damage across Sydney (news link)"]
     db.close()
 
 

@@ -8,7 +8,8 @@ sitrep places the last 2 hours of events in their squares. The kinds of event ar
 - trains: an unplanned train disruption, at the stations its headline names (stations are
   almost always named after their suburb);
 - news: a headline naming a suburb there;
-- social: posts from at least 2 different people naming a suburb there;
+- social: posts from at least 2 different people naming a suburb there (posts that share
+  a link don't count: they're passing on news, not saying what's happening);
 - aircraft: an aircraft circling there (added with the aircraft source).
 
 When 3 or more different kinds land in one square, or in the squares around it, that's a
@@ -196,7 +197,7 @@ class Convergence:
         )
         events = _events_from_items([{**dict(r), "details": json.loads(r["details"])} for r in rows], self.s)
         for who, post in self.posts(since):
-            if post.cell is not None:
+            if post.cell is not None and post.notable:  # a post sharing a link is passing on news, not a sighting
                 events.append(Event("social", post.cell, post.lat, post.lon, post.at, post.title, place=post.place,
                                     alertable=post.alertable, who=who))
         hotspots = find_hotspots(events, self.s)

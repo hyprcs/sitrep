@@ -97,6 +97,7 @@ def test_reading_messages():
     assert created.post.uri == "at://did:plc:a/app.bsky.feed.post/r1"
     assert created.post.url == "https://bsky.app/profile/did:plc:a/post/r1"
     assert "Optus outage hits millions" in created.post.match_text and created.post.text == "Optus down"
+    assert created.post.shares_link  # it has a link card
 
     deleted = read_message(commit(11, T0, "did:plc:a", "r1", op="delete"))
     assert (deleted.kind, deleted.uri) == ("delete", "at://did:plc:a/app.bsky.feed.post/r1")
@@ -110,6 +111,18 @@ def test_reading_messages():
         "$type": "network.bsky.jetstream.subscribeEvents#info", "name": "FutureCursor", "message": "starting at the live tip"}}))
     assert info.kind == "info" and info.info == "FutureCursor: starting at the live tip"
     assert read_message("not json").kind == "other"
+
+
+def test_posts_that_share_a_link_are_marked():
+    def with_facets(*types):
+        raw = json.loads(commit(20, T0, "did:plc:a", "r2", "Two charged after police chase"))
+        raw["payload"]["record"]["facets"] = [{"index": {"byteStart": 0, "byteEnd": 3}, "features": [{"$type": t}]}
+                                              for t in types]
+        return json.dumps(raw)
+
+    assert not read_message(commit(20, T0, "did:plc:a", "r2", "huge crash on the M2")).post.shares_link
+    assert read_message(with_facets("app.bsky.richtext.facet#link")).post.shares_link
+    assert not read_message(with_facets("app.bsky.richtext.facet#tag", "app.bsky.richtext.facet#mention")).post.shares_link
 
 
 # --- The spike test ---

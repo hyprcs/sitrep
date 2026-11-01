@@ -68,6 +68,16 @@ def test_places_know_whether_they_are_in_greater_sydney():
     assert g.get("Macquarie Park").sydney and not g.get("Maitland").sydney
     assert g.get("Epping").ambiguous  # there's an Epping in Victoria too
     assert g.sydney_wide("Sydney weather: storms") and not g.sydney_wide("Storms in Brisbane")
+    assert g.sydney_wide("Two charged after police chase ends on golf course in Sydney's east")
+
+
+def test_naming_nsw_isnt_naming_sydney():
+    # From 1 Nov 2026: a storm on the Southern Tablelands was treated as a story about all of Sydney.
+    g = gazetteer()
+    title = "Tornado-like storm hits NSW Southern Tablelands"
+    assert g.about_nsw(title) and not g.sydney_wide(title)
+    assert not g.sydney_wide("Sydney Sweeney arrives in NSW")  # the actor, not the city
+    assert g.sydney_wide("Sydneysiders brace for storms") and g.sydney_wide("Sydney Trains suspended")
 
 
 # --- Reading feeds ---

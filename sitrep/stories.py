@@ -22,7 +22,12 @@ Corroboration counts kinds of source, not outlets: three outlets running the sam
 story are still one kind. And an official item only counts when it matters on its own (a
 major Live Traffic hazard, an RFS Watch and Act or Emergency Warning, a BoM severe warning
 for Sydney, an unplanned train disruption); routine ones still join a story, but don't
-count as "official".
+count as "official". Likewise a post that shares a link joins a story but doesn't count as
+"social": it's passing on an article (often a bot reposting headlines), not someone saying
+what they can see.
+
+"About Sydney as a whole" means an item names Sydney itself. Naming only NSW isn't enough:
+a storm "in NSW" is as likely to be on the Southern Tablelands.
 
 - 2 kinds: elevated, in every category the story spans, with the story as its scope, so
   a story of news plus official is enough to make the overall status Elevated.
@@ -128,7 +133,7 @@ class Member:
     place: str | None  # a suburb name, if it names one
     cell: tuple[int, int] | None
     sydney_wide: bool
-    notable: bool  # counts as its kind (routine official items don't)
+    notable: bool  # counts as its kind (routine official items and posts sharing a link don't)
     emergency: bool
     alertable: bool
     lat: float | None = None

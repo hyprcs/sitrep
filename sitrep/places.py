@@ -22,6 +22,7 @@ Matching is deliberately strict, because a wrong place is worse than none:
 - "Sydney" on its own means the city as a whole, not the CBD suburb: it makes a story
   Sydney-wide rather than placing it. "Sydney CBD", "the CBD" and a few CBD landmarks
   (Martin Place, Circular Quay, Wynyard, Town Hall, Darling Harbour) place it in the CBD.
+  "NSW" helps recognise place names, but doesn't make a story Sydney-wide.
 """
 
 from __future__ import annotations
@@ -45,8 +46,9 @@ FOREIGN_NAMESAKES = {
 # Words that mean a story is about Sydney or NSW. "Sydney" followed by another capitalised
 # word is usually something else ("Sydney Sweeney", "Sydney Morning Herald"), except these.
 SYDNEY_THINGS = "CBD|Harbour|Trains|Metro|Airport|Water|Opera|Olympic|Uni|University|Road|Police|Swans|FC"
-CONTEXT = re.compile(rf"\b(?:Sydney(?!\s+(?!(?:{SYDNEY_THINGS})\b)[A-Z])|NSW|New South Wales|Sydneysiders?|"
-                     r"Western Sydney)\b")
+CITY = rf"Sydney(?!\s+(?!(?:{SYDNEY_THINGS})\b)[A-Z])|Sydneysiders?|Western Sydney"
+CONTEXT = re.compile(rf"\b(?:{CITY}|NSW|New South Wales)\b")
+NAMES_SYDNEY = re.compile(rf"\b(?:{CITY})\b")
 SYDNEY_WIDE = {"Sydney"}  # names that mean the whole city, not a point
 # Names that mean the CBD (the suburb called Sydney), when the text is about Sydney or NSW.
 CBD = re.compile(r"\b(Sydney CBD|CBD|Martin Place|Circular Quay|Wynyard|Town Hall|Darling Harbour)\b")
@@ -130,9 +132,15 @@ class Gazetteer:
         return list(found.values())
 
     @staticmethod
-    def sydney_wide(text: str) -> bool:
-        """True if the text is about Sydney or NSW as a whole (it names them)."""
+    def about_nsw(text: str) -> bool:
+        """True if the text names Sydney or NSW."""
         return bool(CONTEXT.search(text))
+
+    @staticmethod
+    def sydney_wide(text: str) -> bool:
+        """True if the text is about Sydney as a whole: it names the city. Naming only NSW isn't
+        enough, since a storm "in NSW" is as likely to be on the Southern Tablelands."""
+        return bool(NAMES_SYDNEY.search(text))
 
 
 def load(path: Path = PLACES_FILE) -> Gazetteer:

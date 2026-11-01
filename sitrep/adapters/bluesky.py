@@ -175,6 +175,7 @@ class Post:
     text: str
     match_text: str  # the text plus the title of any linked article, for matching
     url: str
+    shares_link: bool = False  # it has a link card or a link in its text
 
 
 @dataclass(frozen=True)
@@ -195,6 +196,18 @@ def _time(text: Any) -> float | None:
         return None
 
 
+def _shares_link(record: dict[str, Any], external: dict[str, Any]) -> bool:
+    """True if a post has a link card, or a link in its text."""
+    if external.get("uri"):
+        return True
+    for facet in record.get("facets") or []:
+        features = facet.get("features") if isinstance(facet, dict) else None
+        for feature in features if isinstance(features, list) else []:
+            if isinstance(feature, dict) and str(feature.get("$type", "")).endswith("#link"):
+                return True
+    return False
+
+
 def read_message(raw: str | bytes) -> Message:
     try:
         payload = json.loads(raw).get("payload") or {}
@@ -212,11 +225,13 @@ def read_message(raw: str | bytes) -> Message:
         if payload.get("operation") == "create" and isinstance(record, dict):
             text = str(record.get("text") or "")
             external = ((record.get("embed") or {}).get("external") or {}) if isinstance(record.get("embed"), dict) else {}
-            title = str(external.get("title") or "") if isinstance(external, dict) else ""
+            external = external if isinstance(external, dict) else {}
+            title = str(external.get("title") or "")
             post = Post(
                 uri=uri, author=did, time=when or time.time(), text=text,
                 match_text=f"{text}\n{title}" if title else text,
                 url=f"https://bsky.app/profile/{did}/post/{payload.get('rkey')}",
+                shares_link=_shares_link(record, external),
             )
             return Message("post", seq, when, post=post)
     if kind == "account":
@@ -455,21 +470,27 @@ class BlueskyAdapter(StreamingAdapter):
         self._settle()
 
     def _remember_for_stories(self, post: Post) -> None:
-        """Keep a post that names a Sydney suburb, or Sydney itself, for story clusters."""
+        """Keep a post that names a Sydney suburb, or Sydney itself, for story clusters, and
+        count the terms in any post about Sydney or NSW.
+
+        A post that shares a link still joins stories, but doesn't count as social: it's
+        passing on an article (often from a bot that reposts headlines), not someone saying
+        what they can see."""
         places = gazetteer()
         found = places.find(post.text, strict=True)
         local = next((p for p in found if p.sydney), None)
-        if local is None and not places.sydney_wide(post.text):
+        if local is None and not places.about_nsw(post.text):
             return
         fresh = self.ctx.clock() - post.time <= self.recency_limit
-        self._recent.append((post.author, Member(
-            key=f"{self.id}:{post.uri}", source=self.id, source_name=self.name, source_type="social",
-            category=self.category, title=post.text[:300], at=post.time, url=post.url,
-            words=words(post.text, [p.name for p in found]), place=local.name if local else None,
-            cell=cell_of(local.lat, local.lon) if local else None, sydney_wide=local is None, notable=True,
-            emergency=False, alertable=fresh,
-            lat=local.lat if local else None, lon=local.lon if local else None,
-        )))
+        if local is not None or places.sydney_wide(post.text):
+            self._recent.append((post.author, Member(
+                key=f"{self.id}:{post.uri}", source=self.id, source_name=self.name, source_type="social",
+                category=self.category, title=post.text[:300], at=post.time, url=post.url,
+                words=words(post.text, [p.name for p in found]), place=local.name if local else None,
+                cell=cell_of(local.lat, local.lon) if local else None, sydney_wide=local is None,
+                notable=not post.shares_link, emergency=False, alertable=fresh,
+                lat=local.lat if local else None, lon=local.lon if local else None,
+            )))
         if self.ctx.config.terms.enabled:
             # Only the terms are counted, with a one-way code for the account: no text, no handle.
             record(self.ctx.db, post.text, at=post.time, kind="social", who=who_code(post.author), fresh=fresh,

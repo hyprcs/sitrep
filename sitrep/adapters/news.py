@@ -79,7 +79,7 @@ class Headline:
     places: list[str]  # NSW places it names
     lat: float | None = None  # the first Greater Sydney place it names, if any
     lon: float | None = None
-    sydney_wide: bool = False  # it's about Sydney or NSW as a whole
+    sydney_wide: bool = False  # it's about Sydney as a whole (it names Sydney, not just NSW)
     no_ai: bool = False
 
 
@@ -230,7 +230,7 @@ class NewsAdapter(PollingAdapter):
                          "cell": list(cell_of(h.lat, h.lon)) if h.lat is not None else None,
                          "sydney_wide": h.sydney_wide, "no_ai": h.no_ai},
             )
-            if item.new and terms.enabled and (h.sydney_wide or h.places):
+            if item.new and terms.enabled and (h.places or gazetteer().about_nsw(h.title)):
                 # Each headline about Sydney or NSW is counted once, for emerging terms.
                 record(self.ctx.db, h.title, at=h.published, kind="news", who=h.outlet, fresh=item.alertable,
                        blocklist=blocklist)
