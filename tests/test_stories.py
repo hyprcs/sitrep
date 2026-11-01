@@ -112,6 +112,22 @@ def test_police_alone_only_ties_together_items_pinned_to_a_place():
     assert len(placed.members) == 2
 
 
+def test_landmarks_arent_words():
+    # From 1 Nov 2026: a post about the gift shops near the Opera House joined a headline about a
+    # talk there, because "opera" and "house" were two words in common.
+    assert words("Jacinda Ardern tells Sydney Opera House audience how to rebuild trust") == {
+        "jacinda", "ardern", "tell", "audience", "rebuild", "trust"}
+    stories = group([
+        member("bluesky:1", "social", "Lovely afternoon at the Sydney Opera House hearing Jacinda Ardern talk about "
+               "disagreement", where=None, at=NOW - 1800),
+        member("bluesky:2", "social", "Walked past the Sydney Opera House gift shops a few months ago, all packed",
+               where=None, at=NOW - 1200),
+        member("news:a", "mainstream", "Jacinda Ardern tells Sydney Opera House audience how to rebuild trust",
+               where=None, at=NOW - 600),
+    ])
+    assert [[m.key for m in s.members] for s in stories] == [["bluesky:1", "news:a"], ["bluesky:2"]]
+
+
 def test_a_story_keeps_its_id_as_it_grows():
     first = group([member("livetraffic:1", "official", "Crash: M2 Motorway")])[0].id
     grown = group([member("livetraffic:1", "official", "Crash: M2 Motorway"),
@@ -142,6 +158,22 @@ def test_two_kinds_are_elevated_in_both_categories_with_the_story_as_scope():
     story = s.stories[0]
     assert signal.key == f"cluster:{story.id}" and signal.scopes == (f"cluster:{story.id}", f"area:{cell_of(*M2)[0]},{cell_of(*M2)[1]}")
     assert signal.level is Level.ELEVATED
+
+
+def test_a_story_only_raises_anything_when_something_has_happened():
+    talk = stories_of(
+        member("bluesky:1", "social", "Lovely afternoon at the Sydney Opera House hearing Jacinda Ardern talk", where=None),
+        member("news:a", "mainstream", "Jacinda Ardern tells Sydney Opera House audience how to rebuild trust", where=None),
+    )
+    (story,) = talk.stories
+    assert story.kinds() == {"mainstream", "social"} and story.level() is Level.NORMAL
+    assert talk.views(NOW) == [] and talk.assessment(NOW).level is Level.NORMAL
+    assert talk.db.events_since(0) == []  # nor does it go on the timeline
+    evacuated = stories_of(
+        member("bluesky:1", "social", "Jacinda Ardern talk stopped, they've evacuated the whole Opera House", where=None),
+        member("news:a", "mainstream", "Sydney Opera House evacuated during Jacinda Ardern talk", where=None),
+    )
+    assert evacuated.stories[0].level() is Level.ELEVATED
 
 
 def test_triangulated_isnt_critical_without_an_emergency_or_keywords():
@@ -179,6 +211,13 @@ def test_posts_sharing_a_link_join_but_dont_count_as_social():
     (story,) = s.stories
     assert len(story.members) == 2 and story.kinds() == {"mainstream"}
     assert s.views(NOW) == []
+
+
+def test_posts_sharing_a_link_dont_keep_a_story_going():
+    s = stories_of(member("livetraffic:1", "official", "Crash: M2 Motorway", at=NOW - 3 * 3600),
+                   member("news:a", "mainstream", "M2 crash at Macquarie Park", at=NOW - 3 * 3600 + 60),
+                   member("bluesky:bot", "social", "M2 crash at Macquarie Park", at=NOW - 600, notable=False))
+    assert not s.stories[0].active(NOW) and s.views(NOW) == []
 
 
 def test_backlog_cant_raise_an_alert():

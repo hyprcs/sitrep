@@ -84,9 +84,12 @@ One elevated category on its own, or several that aren't about the same thing, l
 the overall status at *Normal* (the reason says what's elevated).
 
 **Stories.** sitrep also groups items from different sources that are about the same
-event into a story (see [Story clusters](#story-clusters)). A story with two kinds of
-source (official, news, social) is elevated in each category it spans, so it's enough to
-make the overall status *Elevated* by itself. It only becomes critical when all three kinds
+event into a story (see [Story clusters](#story-clusters)). A story about something
+happening (an official warning or disruption, or a word like fire, crash, storm or
+lockdown) with two kinds of source (official, news, social) is elevated in each category it
+spans, so it's enough to make the overall status *Elevated* by itself. A headline about a
+talk at the Opera House and a post from someone in the audience don't count: nothing has
+happened. It only becomes critical when all three kinds
 agree, it's in Greater Sydney, and it includes an emergency-level item (an RFS Emergency
 Warning, a BoM severe warning) or matches one of your keyword groups. A big motorway crash
 with news coverage and posts about it is elevated, not critical. The telcos' own status
@@ -1059,7 +1062,10 @@ ones about the same event. Two items are the same story when both hold:
   fire, storm, flood, shooting, stabbing, evacuation, lockdown, explosion, outage, siege,
   collapse, train, police), where "bushfire" and "blaze" both count as "fire", and so on.
   "Police" on its own only counts for items pinned to a place: so much Sydney news
-  mentions police that it can't tie two items about Sydney as a whole together.
+  mentions police that it can't tie two items about Sydney as a whole together. Place
+  names never count as words, and nor do landmarks such as the Opera House, Harbour
+  Bridge, Circular Quay or Town Hall: two posts that both mention the Opera House share a
+  place, not a story. The list is `LANDMARKS` in `sitrep/stories.py`.
 
 A new item is checked against the story's first item, its headlines and its official
 items, never against Bluesky posts that joined later. Otherwise a story drifts from post to
@@ -1074,15 +1080,21 @@ count as "official". Likewise, a Bluesky post that shares a link (a link card, o
 its text) can join a story but doesn't count as "social": it's passing on an article, often
 from an account that reposts headlines automatically, not someone saying what they can see.
 
-| A story with | Status |
+A story only raises anything when it's **about something happening**: the items that count
+include an official item (those only count when they matter), an event word from the list
+above, or a match for one of your keyword groups. Otherwise it's shown for information:
+a news story that someone also posts about isn't an incident.
+
+| A story about something happening, with | Status |
 |---|---|
 | Two kinds of source | Elevated, in each category it spans |
 | All three kinds: official, news and social ("triangulated") | Elevated, shown first |
 | All three, in Greater Sydney, with an emergency-level item or a keyword-group match | Critical |
 
-A story counts while its newest item is less than 2 hours old; after that it's still shown
-for the rest of the 6 hours, but no longer raises anything. Stories with more than one kind
-of source are kept for 7 days and go on the timeline.
+A story counts while its newest item that counts is less than 2 hours old (a bot reposting
+the headline doesn't keep it going); after that it's still shown for the rest of the 6
+hours, but no longer raises anything. Stories with more than one kind of source are kept
+for 7 days; the ones about something happening go on the timeline.
 
 **Bluesky posts and privacy.** To find posts about local events, sitrep keeps the last 6
 hours of posts that name a Sydney suburb (or Sydney itself) **in memory only**, and drops

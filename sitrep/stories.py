@@ -10,7 +10,9 @@ warnings, hazards and disruptions (official), and Bluesky posts that name a Sydn
   fire, storm, flood, shooting, stabbing, evacuation, lockdown, explosion, outage, siege,
   collapse, train, police), where "bushfire" and "blaze" both count as "fire", and so on.
   "Police" alone only counts for items pinned to a place: it's in too many headlines to
-  tie two items about Sydney as a whole together.
+  tie two items about Sydney as a whole together. Place names never count as words, and
+  nor do landmarks ("Opera House", "Harbour Bridge"): two posts that both mention the Opera
+  House share a place, not a story.
 
 An item joins the first story it matches, oldest first; a story's first item names it, so
 it keeps the same id as it grows. A new item is matched against the story's first item,
@@ -29,8 +31,13 @@ what they can see.
 "About Sydney as a whole" means an item names Sydney itself. Naming only NSW isn't enough:
 a storm "in NSW" is as likely to be on the Southern Tablelands.
 
-- 2 kinds: elevated, in every category the story spans, with the story as its scope, so
-  a story of news plus official is enough to make the overall status Elevated.
+A story only raises anything when it's about something happening: its items that count
+include an official item, an event word or a keyword-group match. A headline about a talk
+at the Opera House and someone's post from the audience are a story, but not an incident.
+
+- 2 kinds, about something happening: elevated, in every category the story spans, with
+  the story as its scope, so a story of news plus official is enough to make the overall
+  status Elevated.
 - All 3 kinds ("triangulated"): shown at the top of the dashboard; still elevated.
 - Critical only when a triangulated story is inside Greater Sydney and either includes an
   emergency-level item (an RFS Emergency Warning, a BoM severe warning for Sydney) or
@@ -80,8 +87,13 @@ EVENTS = {
 # Event words too common to tie two items together on their own unless both are pinned to
 # a place: most Sydney crime news mentions police, so it can't tell two Sydney-wide items apart.
 NEEDS_A_PLACE = {"police"}
-# A story counts towards the status while its newest item is this recent. After that it's
-# still shown (for WINDOW_HOURS) but no longer raises anything.
+# Landmarks, left out of an item's words like place names are: they say where it is, not what
+# happened. Most are two words, so two items mentioning one would otherwise share two words.
+LANDMARKS = ("opera house", "harbour bridge", "circular quay", "martin place", "darling harbour", "town hall",
+             "hyde park", "central station", "luna park", "taronga zoo", "botanic garden", "olympic park",
+             "cricket ground")
+# A story counts towards the status while its newest item that counts is this recent. After
+# that it's still shown (for WINDOW_HOURS) but no longer raises anything.
 ACTIVE_HOURS = 2
 FOLD = {word: event for event, words in EVENTS.items() for word in words}
 # Common words, and the boilerplate in official titles, that say nothing about the story.
@@ -98,10 +110,10 @@ rfs warning emergency advice watch act major hazard hazards traffic bom live nsw
 
 
 def words(text: str, places: Iterable[str] = ()) -> set[str]:
-    """The distinctive words in a title: lower case, place names and common words removed,
-    plurals trimmed, and event words folded together ("bushfire" -> "fire")."""
+    """The distinctive words in a title: lower case, place names, landmarks and common words
+    removed, plurals trimmed, and event words folded together ("bushfire" -> "fire")."""
     text = text.lower()
-    for place in places:
+    for place in (*places, *LANDMARKS):
         text = text.replace(place.lower(), " ")
     found = set()
     for token in re.findall(r"[a-z0-9]+(?:'[a-z]+)?", text):
@@ -181,7 +193,16 @@ class Story:
         return {m.source_type for m in self.members if m.notable and (m.alertable or not alertable_only)}
 
     def active(self, now: float) -> bool:
-        return max(m.at for m in self.members) >= now - ACTIVE_HOURS * 3600
+        """Whether its newest item that counts is recent: a bot reposting the headline doesn't
+        keep a story going."""
+        times = [m.at for m in self.members if m.notable] or [m.at for m in self.members]
+        return max(times) >= now - ACTIVE_HOURS * 3600
+
+    def happening(self, alertable_only: bool = False) -> bool:
+        """Whether its items that count say something has happened: an official item (they only
+        count when they matter), an event word, or a keyword-group match."""
+        counted = [m for m in self.members if m.notable and (m.alertable or not alertable_only)]
+        return bool(self.keywords) or any(m.source_type == "official" or m.words & EVENTS.keys() for m in counted)
 
     @property
     def triangulated(self) -> bool:
@@ -206,7 +227,7 @@ class Story:
 
     def level(self, alertable_only: bool = False) -> Level:
         kinds = self.kinds(alertable_only)
-        if len(kinds) < 2:
+        if len(kinds) < 2 or not self.happening(alertable_only):
             return Level.NORMAL
         members = [m for m in self.members if m.alertable or not alertable_only]
         if kinds >= set(TYPES) and (any(m.emergency for m in members) or self.keywords):
@@ -391,10 +412,8 @@ class Stories:
             reason += ": " + "; ".join(s.describe() for s in shown[:3])
         else:
             reason = "No story has more than one kind of source"
-        level = Level.NORMAL
-        live = [s for s in shown if s.active(now)]
-        if live:
-            level = Level.CRITICAL if any(s.level() is Level.CRITICAL for s in live) else Level.ELEVATED
+        live = {s.level() for s in shown if s.active(now)}
+        level = next((lv for lv in (Level.CRITICAL, Level.ELEVATED) if lv in live), Level.NORMAL)
         details = {
             "window_hours": WINDOW_HOURS,
             "stories": [self._story_dict(s, now) for s in self.stories[:20]],
@@ -418,7 +437,8 @@ class Stories:
         }
 
     def _remember(self, now: float) -> None:
-        """Keep corroborated stories for 7 days, and put them on the timeline as they grow."""
+        """Keep corroborated stories for 7 days, and put the ones about something happening on
+        the timeline as they grow."""
         for s in self.stories:
             kinds = s.kinds()
             if len(kinds) < 2:
@@ -433,7 +453,7 @@ class Stories:
                  s.level().value, json.dumps(sorted(kinds)), json.dumps([m.kept() for m in s.members[:50]]), now),
             )
             stage = "triangulated" if s.triangulated else "corroborated"
-            if self._announced.get(s.id) != stage:
+            if s.happening() and self._announced.get(s.id) != stage:
                 self._announced[s.id] = stage
                 self.db.add_event(
                     now, "stories", "info", s.level().value,
