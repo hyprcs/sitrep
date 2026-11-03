@@ -1064,8 +1064,12 @@ ones about the same event. Two items are the same story when both hold:
   "Police" on its own only counts for items pinned to a place: so much Sydney news
   mentions police that it can't tie two items about Sydney as a whole together. Place
   names never count as words, and nor do landmarks such as the Opera House, Harbour
-  Bridge, Circular Quay or Town Hall: two posts that both mention the Opera House share a
-  place, not a story. The list is `LANDMARKS` in `sitrep/stories.py`.
+  Bridge, Circular Quay or Town Hall, or areas such as the Inner West, the North Shore or
+  the Central Coast: two posts that both mention the Opera House share a place, not a
+  story. The lists are `LANDMARKS` and `AREAS` in `sitrep/stories.py`. A train alert's
+  line names don't count either. Its title often says nothing else ("T2 Inner West &
+  Leppington: Leppington & Inner West Line"), so without this, any post about the Inner
+  West would join a delay on the T2.
 
 A new item is checked against the story's first item, its headlines and its official
 items, never against Bluesky posts that joined later. Otherwise a story drifts from post to
@@ -1082,8 +1086,10 @@ from an account that reposts headlines automatically, not someone saying what th
 
 A story only raises anything when it's **about something happening**: the items that count
 include an official item (those only count when they matter), an event word from the list
-above, or a match for one of your keyword groups. Otherwise it's shown for information:
-a news story that someone also posts about isn't an incident.
+above, or a match for one of your keyword groups. As with matching, "police" only counts
+for items pinned to a place: a headline about police getting new rifles isn't an incident.
+Otherwise it's shown for information: a news story that someone also posts about isn't an
+incident.
 
 | A story about something happening, with | Status |
 |---|---|

@@ -13,7 +13,7 @@ from sitrep.db import Database
 from sitrep.geo import cell_of
 from sitrep.models import Category, Level
 from sitrep.state import StatusBoard
-from sitrep.stories import Member, Stories, group, words
+from sitrep.stories import Member, Stories, group, member_from_item, words
 
 NOW = 1_793_412_000.0
 M2 = (-33.7785, 151.1235)
@@ -29,6 +29,15 @@ def member(key, kind, title, where=M2, *, at=NOW - 600, notable=True, emergency=
                   title=title, at=at, url=None, words=words(title, [place] if place else []), place=place, cell=cell,
                   sydney_wide=where is None, notable=notable, emergency=emergency, alertable=alertable,
                   lat=where[0] if where else None, lon=where[1] if where else None)
+
+
+def train_alert(item_id, title, lines, at=NOW - 600):
+    """An unplanned train disruption, made the way stories reads it from the database."""
+    return member_from_item({
+        "source_id": "transit", "item_id": item_id, "source_type": "official", "ts": None, "version_seen": at,
+        "alertable": 1, "level": "info", "title": title, "url": None,
+        "details": {"lines": lines, "cause": "MEDICAL_EMERGENCY", "effect": "SIGNIFICANT_DELAYS", "suspension": False},
+    }, {})
 
 
 def stories_of(*members, keywords=None):
@@ -128,6 +137,44 @@ def test_landmarks_arent_words():
     assert [[m.key for m in s.members] for s in stories] == [["bluesky:1", "news:a"], ["bluesky:2"]]
 
 
+def test_areas_arent_words():
+    assert words("Inner West residents fed up with the plane noise") == {"resident", "fed", "plane", "noise"}
+    assert words("Storms lash the Central Coast and Blue Mountains") == {"storm", "lash"}
+    # Whole words only: "south west" doesn't take the start of "south western".
+    assert words("South-west Sydney and the south western suburbs") == {"south", "western", "suburb"}
+
+
+def test_train_line_names_dont_tie_an_alert_to_posts_about_the_area():
+    # From 3 Nov 2026: a post about Inner West residents and plane noise shared "inner" and "west"
+    # with a delay on the T2 Inner West & Leppington line, so a story about a campaign for an
+    # airport curfew counted an official item and went Elevated. On 2 Nov a change to the XPT
+    # did the same with posts naming the Blue Mountains or the Central Coast.
+    t2 = train_alert("1", "T2 Inner West & Leppington: Leppington & Inner West Line", ["IWL"])
+    assert t2.words == set()
+    curfew = stories_of(
+        member("bluesky:1", "social", "Inner West residents are fed up with the plane noise, bring on the curfew",
+               where=None, at=NOW - 3600),
+        member("news:a", "mainstream", "Residents campaign for curfew at new Sydney airport due to noise", where=None,
+               at=NOW - 3000),
+        t2,
+    )
+    assert [[m.key for m in s.members] for s in curfew.stories] == [["bluesky:1", "news:a"]]
+    assert curfew.views(NOW) == []
+    xpt = train_alert("2", "Blue Mountains, Central Coast & Newcastle, Hunter, South Coast and Southern Highlands: "
+                      "Service Alteration 34 Casino to Sydney XPT - 2nd November 2026.", ["BMT", "CCN", "HUN", "SCO", "SHL"])
+    assert stories_of(
+        member("bluesky:2", "social", "Sydney to the Central Coast this arvo and the M1 is a nightmare", where=None),
+        member("bluesky:3", "social", "Escaping Sydney for the Blue Mountains, Newcastle next week", where=None),
+        xpt,
+    ).stories == []
+    # What the alert says still counts.
+    (story,) = stories_of(
+        train_alert("3", "T1 North Shore: Trains are not running due to a signal failure", ["NSN"]),
+        member("news:b", "mainstream", "Sydney trains not running after signal failure", where=None),
+    ).stories
+    assert story.level() is Level.ELEVATED
+
+
 def test_a_story_keeps_its_id_as_it_grows():
     first = group([member("livetraffic:1", "official", "Crash: M2 Motorway")])[0].id
     grown = group([member("livetraffic:1", "official", "Crash: M2 Motorway"),
@@ -174,6 +221,20 @@ def test_a_story_only_raises_anything_when_something_has_happened():
         member("news:a", "mainstream", "Sydney Opera House evacuated during Jacinda Ardern talk", where=None),
     )
     assert evacuated.stories[0].level() is Level.ELEVATED
+
+
+def test_police_alone_is_only_something_happening_at_a_place():
+    rifles = stories_of(
+        member("news:a", "mainstream", "NSW police will be armed with military-style rifles from Sunday", where=None),
+        member("bluesky:1", "social", "So Sydney police get military rifles from Sunday. What could go wrong", where=None),
+    )
+    (story,) = rifles.stories
+    assert story.kinds() == {"mainstream", "social"} and story.level() is Level.NORMAL
+    placed = stories_of(
+        member("news:a", "mainstream", "Heavy police presence at a CBD shopping centre", CBD),
+        member("bluesky:1", "social", "loads of officers near Westfield right now", CBD),
+    )
+    assert placed.stories[0].level() is Level.ELEVATED
 
 
 def test_triangulated_isnt_critical_without_an_emergency_or_keywords():

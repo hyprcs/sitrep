@@ -11,8 +11,10 @@ warnings, hazards and disruptions (official), and Bluesky posts that name a Sydn
   collapse, train, police), where "bushfire" and "blaze" both count as "fire", and so on.
   "Police" alone only counts for items pinned to a place: it's in too many headlines to
   tie two items about Sydney as a whole together. Place names never count as words, and
-  nor do landmarks ("Opera House", "Harbour Bridge"): two posts that both mention the Opera
-  House share a place, not a story.
+  nor do landmarks ("Opera House", "Harbour Bridge") or areas ("Inner West", "Central
+  Coast"): two posts that both mention the Opera House share a place, not a story. Nor do
+  the line names in a train alert ("T2 Inner West & Leppington"), which often make up its
+  whole title.
 
 An item joins the first story it matches, oldest first; a story's first item names it, so
 it keeps the same id as it grows. A new item is matched against the story's first item,
@@ -34,6 +36,8 @@ a storm "in NSW" is as likely to be on the Southern Tablelands.
 A story only raises anything when it's about something happening: its items that count
 include an official item, an event word or a keyword-group match. A headline about a talk
 at the Opera House and someone's post from the audience are a story, but not an incident.
+"Police" only counts here for items pinned to a place, as it does for matching: a headline
+about police getting new rifles isn't an incident either.
 
 - 2 kinds, about something happening: elevated, in every category the story spans, with
   the story as its scope, so a story of news plus official is enough to make the overall
@@ -92,6 +96,15 @@ NEEDS_A_PLACE = {"police"}
 LANDMARKS = ("opera house", "harbour bridge", "circular quay", "martin place", "darling harbour", "town hall",
              "hyde park", "central station", "luna park", "taronga zoo", "botanic garden", "olympic park",
              "cricket ground")
+# Areas, left out for the same reason. Train lines are named after them ("T2 Inner West &
+# Leppington"), so a post about the Inner West would otherwise share two words with any alert
+# on that line.
+AREAS = ("inner west", "inner city", "north shore", "northern beaches", "eastern suburbs", "south west", "north west",
+         "hills district", "sutherland shire", "st george", "central coast", "blue mountains", "south coast",
+         "north coast", "southern highlands", "hunter valley", "central west", "northern rivers", "new england")
+# Whole words only, so "south west" doesn't eat the start of "south western"; "south-west" counts too.
+NOT_WORDS = re.compile(r"\b(?:" + "|".join(r"[\s-]+".join(map(re.escape, name.split()))
+                                           for name in (*LANDMARKS, *AREAS)) + r")\b")
 # A story counts towards the status while its newest item that counts is this recent. After
 # that it's still shown (for WINDOW_HOURS) but no longer raises anything.
 ACTIVE_HOURS = 2
@@ -110,11 +123,12 @@ rfs warning emergency advice watch act major hazard hazards traffic bom live nsw
 
 
 def words(text: str, places: Iterable[str] = ()) -> set[str]:
-    """The distinctive words in a title: lower case, place names, landmarks and common words
-    removed, plurals trimmed, and event words folded together ("bushfire" -> "fire")."""
+    """The distinctive words in a title: lower case, place names, landmarks, areas and common
+    words removed, plurals trimmed, and event words folded together ("bushfire" -> "fire")."""
     text = text.lower()
-    for place in (*places, *LANDMARKS):
+    for place in places:
         text = text.replace(place.lower(), " ")
+    text = NOT_WORDS.sub(" ", text)
     found = set()
     for token in re.findall(r"[a-z0-9]+(?:'[a-z]+)?", text):
         token = token.split("'")[0]
@@ -202,7 +216,7 @@ class Story:
         """Whether its items that count say something has happened: an official item (they only
         count when they matter), an event word, or a keyword-group match."""
         counted = [m for m in self.members if m.notable and (m.alertable or not alertable_only)]
-        return bool(self.keywords) or any(m.source_type == "official" or m.words & EVENTS.keys() for m in counted)
+        return bool(self.keywords) or any(m.source_type == "official" or events(m) for m in counted)
 
     @property
     def triangulated(self) -> bool:
@@ -252,13 +266,17 @@ def same_place(a: Member, b: Member) -> bool:
     return abs(a.cell[0] - b.cell[0]) <= 1 and abs(a.cell[1] - b.cell[1]) <= 1
 
 
+def events(m: Member) -> set[str]:
+    """Its event words. "Police" only counts for an item pinned to a place: Sydney news that
+    mentions police is mostly about policing, not something happening."""
+    found = m.words & EVENTS.keys()
+    return found - NEEDS_A_PLACE if m.cell is None else found
+
+
 def same_words(a: Member, b: Member) -> bool:
     """Two distinctive words in common, or the same event word."""
     shared = a.words & b.words
-    events = shared & EVENTS.keys()
-    if a.cell is None:
-        events -= NEEDS_A_PLACE
-    return len(shared) >= 2 or bool(events)
+    return len(shared) >= 2 or bool(events(a) & events(b))
 
 
 def same_story(item: Member, story: Story) -> bool:
@@ -316,14 +334,26 @@ def member_from_item(row: dict[str, Any], names: dict[str, tuple[str, Category]]
         if not sydney_wide:
             return None
     name, category = names.get(source, (source, Category.INFO))
+    found = words(row["title"], [*places, *([place] if place else [])])
+    if source == "transit":
+        found -= line_words(d.get("lines") or [])
     return Member(
         key=f"{source}:{row['item_id']}", source=source, source_name=name, source_type=row["source_type"],
         category=category, title=row["title"], at=row["ts"] or row["version_seen"], url=row["url"],
-        words=words(row["title"], [*places, *([place] if place else [])]), place=place, cell=cell,
+        words=found, place=place, cell=cell,
         sydney_wide=sydney_wide, notable=_notable(source, row["level"], d),
         emergency=bool(d.get("emergency")) or d.get("level") == "Emergency Warning",
         alertable=bool(row["alertable"]), lat=lat, lon=lon, outlet=d.get("outlet", ""),
     )
+
+
+def line_words(codes: Iterable[str]) -> set[str]:
+    """The words in the names of a train alert's lines, and "line". An alert's title starts with
+    its lines and often says nothing else ("T2 Inner West & Leppington: Leppington & Inner West
+    Line"): which line it's on says where, not what happened."""
+    from .adapters.transit import LINES  # here, not at the top: the adapters import this module
+
+    return {"line"}.union(*(words(LINES[c]) for c in codes if c in LINES))
 
 
 def _in_sydney(lat: float, lon: float) -> bool:
