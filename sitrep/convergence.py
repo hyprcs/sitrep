@@ -7,7 +7,8 @@ sitrep places the last 2 hours of events in their squares. The kinds of event ar
 - road: a Live Traffic hazard (unplanned or major; not long-term roadworks or events);
 - trains: an unplanned train disruption, at the stations its headline names (stations are
   almost always named after their suburb);
-- news: a headline naming a suburb there;
+- news: a headline naming a suburb there, unless it's looking back at something that
+  happened a while ago (see stories.py): a victim dying a year later isn't an event there;
 - social: posts from at least 2 different people naming a suburb there (posts that share
   a link don't count: they're passing on news, not saying what's happening);
 - aircraft: an aircraft circling there (added with the aircraft source).
@@ -39,6 +40,7 @@ from .geo import cell_of
 from .models import Assessment, Category, Level, Signal, area
 from .places import gazetteer
 from .state import SourceView
+from .stories import LOOKS_BACK
 
 KIND_LABELS = {"fire": "fire", "road": "road hazard", "trains": "train disruption", "news": "news",
                "social": "posts", "aircraft": "aircraft circling"}
@@ -161,7 +163,7 @@ def _events_from_items(rows: list[dict[str, Any]], s: ConvergenceSettings) -> li
             for p in places.find(row["title"], nsw_feed=True):
                 if p.sydney:
                     events.append(Event("trains", cell_of(p.lat, p.lon), p.lat, p.lon, place=p.name, **common))
-        elif source == "news" and d.get("lat") is not None:
+        elif source == "news" and d.get("lat") is not None and not LOOKS_BACK.search(row["title"]):
             place = next((p for p in d.get("places") or [] if (g := places.get(p)) and g.sydney), None)
             events.append(Event("news", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"], place=place, **common))
         elif source == "adsb" and d.get("lat") is not None and d.get("orbit"):
@@ -177,12 +179,14 @@ class Convergence:
 
     def __init__(self, db: Database, settings: ConvergenceSettings, clock: Callable[[], float] = time.time, *,
                  keyword_groups: Callable[[str], list[str]] | None = None,
-                 posts: Callable[[float], list[tuple[str, Any]]] | None = None) -> None:
+                 posts: Callable[[float], list[tuple[str, Any]]] | None = None,
+                 old_headlines: Callable[[], set[str]] | None = None) -> None:
         self.db = db
         self.s = settings
         self.clock = clock
         self.keyword_groups = keyword_groups or (lambda text: [])
         self.posts = posts or (lambda since: [])  # (author code, post) for recent Bluesky posts
+        self.old_headlines = old_headlines or set  # headlines story clusters found are old news
         self.hotspots: list[Hotspot] = []
         self._announced: set[str] = set()
 
@@ -195,6 +199,8 @@ class Convergence:
                  AND COALESCE(ts, version_seen) >= ?""",
             (since,),
         )
+        old = self.old_headlines()
+        rows = [r for r in rows if f"{r['source_id']}:{r['item_id']}" not in old]
         events = _events_from_items([{**dict(r), "details": json.loads(r["details"])} for r in rows], self.s)
         for who, post in self.posts(since):
             if post.cell is not None and post.notable:  # a post sharing a link is passing on news, not a sighting

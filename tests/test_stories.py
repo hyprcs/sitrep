@@ -13,7 +13,7 @@ from sitrep.db import Database
 from sitrep.geo import cell_of
 from sitrep.models import Category, Level
 from sitrep.state import StatusBoard
-from sitrep.stories import Member, Stories, group, member_from_item, words
+from sitrep.stories import LOOKS_BACK, Member, Stories, group, member_from_item, words
 
 NOW = 1_793_412_000.0
 M2 = (-33.7785, 151.1235)
@@ -332,3 +332,95 @@ def test_descriptions(title):
     s = stories_of(member("livetraffic:1", "official", "Crash: M2 Motorway, Macquarie Park", place="Macquarie Park"),
                    member("news:a", "mainstream", "M2 crash at Macquarie Park", place="Macquarie Park"))
     assert s.stories[0].describe() == title
+
+
+# --- Looking back at something that happened a while ago ---
+
+BONDI = (-33.8915, 151.2767)
+OLD = "Woman shot in Bondi attack dies a year later"
+TIED = "Survivor shot in Bondi attack dies in hospital"  # no look-back phrase, but the same news
+NEW = "Police respond to shooting at Bondi Beach"
+
+
+def headline(item_id, title):
+    """A headline, made the way stories reads it from the database."""
+    return member_from_item({
+        "source_id": "news", "item_id": item_id, "source_type": "mainstream", "ts": NOW - 600,
+        "version_seen": NOW - 600, "alertable": 1, "level": "info", "title": title, "url": None,
+        "details": {"lat": BONDI[0], "lon": BONDI[1], "places": ["Bondi"], "outlet": "ABC News"},
+    }, {})
+
+
+def reaction():
+    return member("bluesky:1", "social", "So sad, she was shot at Bondi", BONDI, at=NOW - 300, place="Bondi")
+
+
+@pytest.mark.parametrize("title", [
+    OLD,
+    "Bondi shooting victim dies 11 months after attack",
+    "One year on from the Bondi shooting",
+    "Two years later, Sydney siege survivors speak",
+    "Sydney marks anniversary of Bondi shooting",
+    "Inquest hears of police response to Bondi shooting",
+    "Coroner to examine Sydney stabbing",
+    "Royal commission into Bondi attack begins",
+    "Murder trial hears of Sydney shooting",
+    "Man sentenced over Sydney stabbing",
+    "Man jailed over Sydney stabbing",
+    "Man pleads guilty to Sydney shooting",
+])
+def test_phrases_that_look_back(title):
+    assert LOOKS_BACK.search(title)
+
+
+@pytest.mark.parametrize("title", [
+    NEW,
+    TIED,
+    "Gunman at large after shots fired in Bondi",
+    "Trains evacuated at Central after explosion",
+    "Man shot in Bondi dies in hospital",
+    "Two hurt in stabbing at Parramatta",
+    "Teenager charged over stabbing in Bondi",
+    "Evacuations under way as Sydney floods worsen",
+])
+def test_headlines_about_now_dont_look_back(title):
+    assert not LOOKS_BACK.search(title)
+
+
+def test_only_headlines_can_look_back():
+    assert headline("1", OLD).looks_back
+    assert not train_alert("1", "Repairs continue weeks after collapse", []).looks_back
+
+
+def test_a_story_looking_back_is_shown_but_raises_nothing():
+    s = stories_of(headline("1", OLD), reaction())
+    (story,) = s.stories
+    assert s.corroborated == [story]
+    assert not story.happening() and story.level() is Level.NORMAL and s.views(NOW) == []
+    assert not s.db.query("SELECT 1 FROM events")  # nor does it go on the timeline
+
+
+def test_a_headline_tied_to_one_looking_back_is_the_same_news():
+    assert stories_of(headline("1", TIED), reaction()).stories[0].level() is Level.ELEVATED  # alone, it can't tell
+    s = stories_of(headline("1", OLD), headline("2", TIED), reaction())
+    assert s.stories[0].level() is Level.NORMAL
+    assert s.old_headlines() == {"news:1", "news:2"}
+
+
+def test_old_news_cant_match_a_keyword_group():
+    s = stories_of(headline("1", OLD), reaction(), keywords=lambda text: ["sydney_incident"] if "shot" in text else [])
+    assert s.stories[0].keywords == ()
+
+
+def test_a_new_headline_in_the_same_place_still_counts():
+    s = stories_of(headline("1", OLD), headline("2", NEW), reaction())
+    (story,) = s.stories
+    assert story.level() is Level.ELEVATED
+    assert s.old_headlines() == {"news:1"}
+
+
+def test_an_official_item_is_never_old_news():
+    official = member("livetraffic:1", "official", "Live Traffic: Shooting: Campbell Parade, Bondi", BONDI,
+                      at=NOW - 300, place="Bondi")
+    (story,) = stories_of(headline("1", OLD), reaction(), official).stories
+    assert story.triangulated and story.level() is Level.ELEVATED

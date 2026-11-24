@@ -39,6 +39,14 @@ at the Opera House and someone's post from the audience are a story, but not an 
 "Police" only counts here for items pinned to a place, as it does for matching: a headline
 about police getting new rifles isn't an incident either.
 
+Nor is a story looking back at something that happened a while ago: a shooting victim dying
+a year later, an inquest, a sentencing. An event word says what a story is about, not when it
+happened. One headline with a look-back phrase makes that story old news: posts in it are
+reacting to the headline, and other headlines tied to it by two words that aren't event words
+are the same news. None of those counts as something happening, or towards a keyword group.
+The story is still shown. An official item is never old news, and nor is a headline that only
+shares an event word, since that could be something new in the same place.
+
 - 2 kinds, about something happening: elevated, in every category the story spans, with
   the story as its scope, so a story of news plus official is enough to make the overall
   status Elevated.
@@ -105,6 +113,14 @@ AREAS = ("inner west", "inner city", "north shore", "northern beaches", "eastern
 # Whole words only, so "south west" doesn't eat the start of "south western"; "south-west" counts too.
 NOT_WORDS = re.compile(r"\b(?:" + "|".join(r"[\s-]+".join(map(re.escape, name.split()))
                                            for name in (*LANDMARKS, *AREAS)) + r")\b")
+# Phrases that say a headline is looking back at something that happened a while ago ("dies a
+# year later", "one year on", "inquest", "sentenced"), not reporting something happening now.
+LOOKS_BACK = re.compile(
+    r"\b(?:(?:weeks?|months?|years?|decades?)\s+(?:later|after|on|ago|since)"
+    r"|anniversar(?:y|ies)|inquest|coroner|coronial|royal commission"
+    r"|trial|jury|sentenced|sentencing|jailed|(?:pleads?|pleaded|found) guilty|convicted)\b",
+    re.IGNORECASE,
+)
 # A story counts towards the status while its newest item that counts is this recent. After
 # that it's still shown (for WINDOW_HOURS) but no longer raises anything.
 ACTIVE_HOURS = 2
@@ -165,6 +181,7 @@ class Member:
     lat: float | None = None
     lon: float | None = None
     outlet: str = ""
+    looks_back: bool = False  # a headline about something that happened a while ago
 
     def to_dict(self) -> dict[str, Any]:
         return {"key": self.key, "source": self.source, "source_name": self.source_name, "type": self.source_type,
@@ -187,6 +204,17 @@ class Story:
     @property
     def first(self) -> Member:
         return self.members[0]
+
+    def old_news(self, m: Member) -> bool:
+        """Whether an item is about something that happened a while ago. It takes one headline
+        saying so: posts in that story are reacting to it, and other headlines tied to it by two
+        words that aren't event words are the same news. An official item never is, and nor is a
+        headline that only shares an event word: that could be something new in the same place."""
+        back = [h for h in self.members if h.looks_back]
+        if not back or m.source_type == "official":
+            return False
+        return (m.source_type == "social" or m.looks_back
+                or any(len((m.words & h.words) - EVENTS.keys()) >= 2 for h in back))
 
     @property
     def anchors(self) -> list[Member]:
@@ -214,8 +242,9 @@ class Story:
 
     def happening(self, alertable_only: bool = False) -> bool:
         """Whether its items that count say something has happened: an official item (they only
-        count when they matter), an event word, or a keyword-group match."""
-        counted = [m for m in self.members if m.notable and (m.alertable or not alertable_only)]
+        count when they matter), an event word, or a keyword-group match. Old news doesn't."""
+        counted = [m for m in self.members if m.notable and (m.alertable or not alertable_only)
+                   and not self.old_news(m)]
         return bool(self.keywords) or any(m.source_type == "official" or events(m) for m in counted)
 
     @property
@@ -344,6 +373,7 @@ def member_from_item(row: dict[str, Any], names: dict[str, tuple[str, Category]]
         sydney_wide=sydney_wide, notable=_notable(source, row["level"], d),
         emergency=bool(d.get("emergency")) or d.get("level") == "Emergency Warning",
         alertable=bool(row["alertable"]), lat=lat, lon=lon, outlet=d.get("outlet", ""),
+        looks_back=row["source_type"] == "mainstream" and bool(LOOKS_BACK.search(row["title"])),
     )
 
 
@@ -392,10 +422,15 @@ class Stories:
         members += self.social(since)
         stories = [s for s in group(members) if len(s.members) >= 2]
         for story in stories:
-            story.keywords = tuple(self.keyword_groups(" \n".join(m.title for m in story.members)))
+            story.keywords = tuple(self.keyword_groups(" \n".join(m.title for m in story.members
+                                                                   if not story.old_news(m))))
         self.stories = sorted(stories, key=lambda s: (-len(s.kinds()), -max(m.at for m in s.members)))
         self._remember(now)
         return self.stories
+
+    def old_headlines(self) -> set[str]:
+        """The headlines that are old news, for convergence."""
+        return {m.key for s in self.stories for m in s.members if m.source_type == "mainstream" and s.old_news(m)}
 
     @property
     def corroborated(self) -> list[Story]:

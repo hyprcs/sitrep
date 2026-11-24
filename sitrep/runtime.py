@@ -108,6 +108,7 @@ class Runtime:
         self.convergence = Convergence(
             self.db, self.cfg.convergence, self.clock, keyword_groups=self.stories.keyword_groups,
             posts=getattr(self.adapters.get("bluesky"), "recent_mentions", None),
+            old_headlines=self.stories.old_headlines,
         )
         if self.cfg.convergence.enabled:
             self.board.register("convergence", "Convergence", Category.INFO, None, stale_after=24 * 3600)

@@ -1091,6 +1091,17 @@ for items pinned to a place: a headline about police getting new rifles isn't an
 Otherwise it's shown for information: a news story that someone also posts about isn't an
 incident.
 
+Nor is a story **looking back** at something that happened a while ago, such as a shooting
+victim dying a year later, an anniversary, an inquest or a sentencing. An event word says
+what a story is about, not when it happened. One headline with a look-back phrase ("a year
+later", "months after", "one year on", "anniversary", "inquest", "trial", "sentenced" and so
+on; the list is `LOOKS_BACK` in `sitrep/stories.py`) makes that story old news: posts in it
+are reacting to the headline, and other headlines sharing two words with it (not counting
+event words) are the same news. The story is still shown, but those items can't raise
+anything or match a keyword group. An official item is never old news, and nor is a headline
+that only shares an event word, since that could be something new in the same place: a fresh
+"shooting at Bondi Beach" headline still counts on the day a story looks back at an old one.
+
 | A story about something happening, with | Status |
 |---|---|
 | Two kinds of source | Elevated, in each category it spans |
@@ -1150,7 +1161,7 @@ the last 2 hours of events in their squares. The kinds are:
 | fire | an RFS incident (not planned burns) |
 | road hazard | a Live Traffic hazard that's unplanned or major (not roadworks or events) |
 | train disruption | an unplanned train disruption, at the stations its message names |
-| news | a headline naming a suburb there |
+| news | a headline naming a suburb there (not one that's old news: see [Story clusters](#story-clusters)) |
 | posts | Bluesky posts from **at least 2 different people** naming a suburb there (posts that share a link don't count) |
 | aircraft circling | a helicopter, or an aircraft below 3,000 ft, circling one spot for 10 minutes (see [Aircraft over Sydney](#aircraft-over-sydney)) |
 

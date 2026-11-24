@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 from sitrep.config import ConvergenceSettings, ScoringSettings
 from sitrep.convergence import Convergence, Event, _events_from_items, find_hotspots
@@ -10,6 +11,7 @@ from sitrep.db import Database
 from sitrep.geo import cell_of
 from sitrep.models import Category, Level, Overall
 from sitrep.scoring import score_overall
+from sitrep.stories import Member, Stories, words
 
 S = ConvergenceSettings()
 NOW = 1_793_412_000.0
@@ -132,3 +134,63 @@ def test_the_engine_reads_stored_items_and_posts_and_keeps_post_text_private():
     # Official and social, both about Kellyville: enough to make the overall status Elevated.
     assert score_overall(views, ScoringSettings())[0].level is Overall.ELEVATED
     db.close()
+
+
+# --- Headlines looking back at something that happened a while ago ---
+
+BONDI = (-33.8915, 151.2767)
+OLD = "Woman shot in Bondi attack dies a year later"
+TIED = "Survivor shot in Bondi attack dies in hospital"  # no look-back phrase, but the same news
+NEW = "Police respond to shooting at Bondi Beach"
+
+
+def test_a_headline_looking_back_isnt_an_event():
+    where = {"lat": BONDI[0], "lon": BONDI[1], "places": ["Bondi"]}
+    rows = [item("news", OLD, where), item("news", NEW, where, item_id="2")]
+    assert [e.title for e in _events_from_items(rows, S)] == [NEW]
+
+
+def test_the_engine_skips_headlines_stories_found_are_old_news():
+    db = Database(":memory:")
+    db.see_item("news", "1", ts=NOW - 600, now=NOW - 600, fresh=True, source_type="mainstream", title=TIED,
+                details={"lat": BONDI[0], "lon": BONDI[1], "places": ["Bondi"]})
+    db.see_item("livetraffic", "2", ts=NOW - 600, now=NOW - 600, fresh=True, source_type="official",
+                title="Live Traffic: Breakdown: Bondi Road, Bondi",
+                details={"lat": BONDI[0], "lon": BONDI[1], "suburb": "Bondi", "kind": "incident", "planned": False})
+    post = SimpleNamespace(cell=cell_of(*BONDI), lat=BONDI[0], lon=BONDI[1], at=NOW - 300, title="Shot at Bondi",
+                           place="Bondi", alertable=True, notable=True)
+    people = lambda since: [("a", post), ("b", post)]  # noqa: E731
+    assert len(Convergence(db, S, lambda: NOW, posts=people).update(NOW)) == 1
+    assert Convergence(db, S, lambda: NOW, posts=people, old_headlines=lambda: {"news:1"}).update(NOW) == []
+
+
+def bondi_engines(*headlines):
+    """Stories and convergence working together, as they do live, on these headlines, a road
+    hazard and two people posting. Keywords match, so any convergence here would be critical."""
+    db = Database(":memory:")
+    for i, title in enumerate(headlines):
+        db.see_item("news", str(i), ts=NOW - 600, now=NOW - 600, fresh=True, source_type="mainstream", title=title,
+                    details={"lat": BONDI[0], "lon": BONDI[1], "places": ["Bondi"]})
+    db.see_item("livetraffic", "road", ts=NOW - 300, now=NOW - 300, fresh=True, source_type="official",
+                title="Live Traffic: Breakdown: Bondi Road, Bondi",
+                details={"lat": BONDI[0], "lon": BONDI[1], "suburb": "Bondi", "kind": "incident", "planned": False})
+    posts = [(who, Member(key=f"bluesky:{who}", source="bluesky", source_name="Bluesky", source_type="social",
+                          category=Category.SOCIAL, title="Shot at Bondi in Sydney", at=NOW - 200, url=None,
+                          words=words("Shot at Bondi in Sydney", ["Bondi"]), place="Bondi", cell=cell_of(*BONDI),
+                          sydney_wide=False, notable=True, emergency=False, alertable=True, lat=BONDI[0], lon=BONDI[1]))
+             for who in ("a", "b")]
+    keywords = lambda text: ["sydney_incident"] if "shot" in text.lower() or "shooting" in text.lower() else []  # noqa: E731
+    stories = Stories(db, lambda: NOW, keyword_groups=keywords, social=lambda since: [m for _, m in posts])
+    stories.update(NOW)
+    engine = Convergence(db, S, lambda: NOW, keyword_groups=keywords, posts=lambda since: posts,
+                         old_headlines=stories.old_headlines)
+    return engine.update(NOW)
+
+
+def test_old_news_and_a_breakdown_nearby_arent_a_convergence():
+    assert bondi_engines(OLD, TIED) == []
+
+
+def test_a_new_headline_on_the_same_day_still_converges():
+    (spot,) = bondi_engines(OLD, TIED, NEW)
+    assert spot.kinds(S) == {"news", "road", "social"} and spot.level(S) is Level.CRITICAL
