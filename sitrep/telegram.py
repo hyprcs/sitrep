@@ -151,14 +151,16 @@ def _plain_text(text: str, limit: int = MAX_LINE) -> str:
 
 
 def _what_lines(alert: Alert) -> list[str]:
-    """What's happening: the lines behind the headline and anything raised alongside it, or
-    the reason when there's no headline."""
+    """What's happening: the lines behind the headline, what else backs it up, and what's
+    raised at the same time without being about it; or the reason when there's no headline."""
     s = alert.summary
     if not s.headline:
         return [html.escape(sentence(_cut(alert.reason)), quote=False)]
     lines = [_plain_text(sentence(line)) for line in s.lines]
     if s.also:
-        lines.append(_plain_text(sentence(f"Also raised: {s.also}")))
+        lines.append(_plain_text(sentence(f"Also: {s.also}")))
+    if s.unlinked:
+        lines.append(_plain_text(sentence(f"Not linked: {s.unlinked}")))
     return lines
 
 

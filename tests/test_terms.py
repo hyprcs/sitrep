@@ -133,3 +133,66 @@ def test_headlines_raise_news_and_backlog_cant_alert():
     terms.update(NOW)
     assert {v.category for v in terms.views(NOW)} == {Category.NEWS}
     assert terms.views(NOW, alertable_only=True) == []  # seen too late to alert on
+
+
+# --- Topics: busy terms that belong together ---
+
+
+def term(name, mentions=10, sources=8, place=False):
+    from sitrep.terms import Term
+    return Term(name, mentions, sources, 0.1, 0, mentions, mentions, sources, place=place, flagged=True)
+
+
+def test_a_term_is_found_however_its_words_are_joined():
+    from sitrep.terms import term_pattern
+    assert term_pattern("lamarre condon").search("Beau Lamarre-Condon found guilty")
+    assert term_pattern("macquarie park").search("Crash at Macquarie  Park")
+    assert not term_pattern("ant").search("Fire ants spread")  # whole words only
+
+
+def test_terms_from_the_same_texts_are_one_topic_and_an_everyday_word_doesnt_glue_two_stories():
+    from sitrep.terms import group
+    court = [term("lamarre"), term("lamarre condon"), term("guilty")]
+    fire = [term("house fire"), term("evacuated")]
+    shared = term("fire")  # in both stories' texts, but mostly the house fire's
+    texts = {"lamarre": {1, 2, 3, 4}, "lamarre condon": {1, 2, 3, 4}, "guilty": {1, 2, 3},
+             "house fire": {10, 11, 12}, "evacuated": {10, 11, 12}, "fire": {4, 10, 11, 12}}
+    found = sorted(sorted(t.term for t in g) for g in group(court + fire + [shared], texts))
+    assert found == [["evacuated", "fire", "house fire"], ["guilty", "lamarre", "lamarre condon"]]
+    # One shared text isn't enough on its own ("harbour" and "finds" from one headline)...
+    assert len(group([term("harbour"), term("finds")], {"harbour": {7}, "finds": {7}})) == 2
+    # ...unless one is part of the other ("fire" and "fire ant").
+    assert len(group([term("fire"), term("fire ant")], {"fire": {7, 8}, "fire ant": {7}})) == 1
+    # With nothing to compare (posts gone after a restart), words inside phrases still join.
+    assert len(group([term("beach"), term("bondi beach")], {})) == 1
+
+
+def test_a_topic_is_named_after_its_phrases_and_shown_with_a_headline_about_it():
+    from sitrep.terms import best_headline, name_of
+    terms = [term("beau lamarre", 18), term("lamarre condon", 16), term("condon found", 7), term("lamarre", 20)]
+    assert name_of(terms) == "beau lamarre condon"  # "condon found" isn't busy enough to join the name
+    headlines = [{"title": "Men flee as police raid cannabis crop", "url": "a", "outlet": "ABC News"},
+                 {"title": "Beau Lamarre-Condon found guilty of murdering Jesse Baird", "url": "b", "outlet": "ABC News"}]
+    assert best_headline(terms, "beau lamarre condon", headlines)["text"].startswith("Beau Lamarre-Condon")
+    police = [term("police"), term("police officer"), term("former police"), term("officer")]
+    assert best_headline(police, "former police officer", headlines) is None  # "police" alone isn't about it
+
+
+def test_busy_words_are_described_by_topic_and_lone_words_only_counted():
+    from types import SimpleNamespace
+    db = Database(":memory:")
+    hits(db, "chemical smell in Kellyville", 6)
+    hits(db, "making", 8, who_prefix="bot", sources=2)
+    posts = [SimpleNamespace(title="chemical smell in Kellyville", at=NOW - 60) for _ in range(6)]
+    terms = Terms(db, S, lambda: NOW, posts=lambda since: posts)
+    db.kv_set("terms:first_seen", str(NOW - 8 * 86400))
+    terms.update(NOW)
+    named = [tp.name for tp in terms.topics if tp.named]
+    assert named == ["chemical smell"]  # with "kellyville", "chemical", "smell": all from the same posts
+    lone = next(tp for tp in terms.topics if tp.name == "making")
+    assert not lone.named
+    reason = terms.assessment(NOW).reason
+    assert reason.startswith('"chemical smell" and ') and reason.endswith('also busy: "making"')
+    (view,) = terms.views(NOW)
+    headlines = {s.key: s.headline for s in view.signals}
+    assert headlines["term:kellyville"] == 'busy talk about "chemical smell"' and headlines["term:making"] == ""

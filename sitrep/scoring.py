@@ -56,11 +56,16 @@ class OverallResult:
     level: Overall
     reason: str
     drivers: tuple[Signal, ...] = ()  # the signals behind the level
+    # The keys of the drivers that caused it: backed up by another category, or critical.
+    # The rest were raised in the same categories at the same time. None: all of them.
+    linked: frozenset[str] | None = None
 
     @property
     def summary(self) -> Summary:
         """What's happening and where, in a few words (see summary.py)."""
-        return summarise(self.drivers) if self.level in (Overall.ELEVATED, Overall.CRITICAL) else Summary()
+        if self.level not in (Overall.ELEVATED, Overall.CRITICAL):
+            return Summary()
+        return summarise(self.drivers, self.linked)
 
 
 def describe(view: SourceView) -> str:
@@ -132,6 +137,22 @@ def scopes_related(a: str, b: str, cfg: ScoringSettings) -> bool:
     return False
 
 
+def related(a: Signal, b: Signal, cfg: ScoringSettings) -> bool:
+    return any(scopes_related(x, y, cfg) for x in a.scopes for y in b.scopes)
+
+
+def linked_in(group: list[CategoryResult], cfg: ScoringSettings) -> frozenset[str]:
+    """The signals in a group of elevated categories that back up a signal in another of them."""
+    found = set()
+    for i, a in enumerate(group):
+        for b in group[i + 1:]:
+            for sa in a.signals:
+                for sb in b.signals:
+                    if related(sa, sb, cfg):
+                        found |= {sa.key, sb.key}
+    return frozenset(found)
+
+
 def backing(a: CategoryResult, b: CategoryResult, cfg: ScoringSettings) -> tuple[Signal, Signal] | None:
     """A pair of signals, one from each category, that are about the same thing, if any."""
     for sa in a.signals:
@@ -178,13 +199,16 @@ def score_overall(
             if also:
                 reason += ". Also elevated: " + "; ".join(also)
         drivers = tuple(s for c in critical for s in c.signals)
-        return OverallResult(Overall.CRITICAL, reason, drivers), categories
+        worst = [s for s in drivers if s.level == Level.CRITICAL]
+        # A category made critical by several elevated sources together: all of them caused it.
+        linked = frozenset(s.key for s in drivers if any(related(s, w, cfg) for w in worst)) if worst else None
+        return OverallResult(Overall.CRITICAL, reason, drivers, linked), categories
 
     groups = _groups(elevated, cfg)
     if groups and len(groups[0]) >= cfg.elevated_when_categories:
         group = groups[0]
         drivers = tuple(s for c in group for s in c.signals)
-        return OverallResult(Overall.ELEVATED, _reasons(group), drivers), categories
+        return OverallResult(Overall.ELEVATED, _reasons(group), drivers, linked_in(group, cfg)), categories
     if len(elevated) == 1:
         only = elevated[0]
         reason = f"Nothing big. One category is elevated, which isn't enough on its own: {only.reason}"

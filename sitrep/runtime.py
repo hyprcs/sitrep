@@ -222,7 +222,8 @@ class Runtime:
         self.alert_tracker.update(alerting, now)
         seen, shown = self.alert_tracker.current, self.tracker.current
         self.alerts.update(seen.level, seen.reason, now, drivers=seen.drivers,
-                           shown=shown.level, shown_reason=shown.reason, shown_headline=shown.summary.headline)
+                           shown=shown.level, shown_reason=shown.reason, shown_headline=shown.summary.headline,
+                           summary=seen.summary)
         self.db.kv_set(HEARTBEAT_KEY, str(now))
 
     def _derived(self, now: float, alertable_only: bool = False) -> list[SourceView]:
@@ -296,6 +297,7 @@ class Runtime:
                 "headline": tracker.current.summary.headline,
                 "lines": list(tracker.current.summary.lines),
                 "also": tracker.current.summary.also,
+                "unlinked": tracker.current.summary.unlinked,
                 "since": tracker.since,
                 "easing": easing,
             },

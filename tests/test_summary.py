@@ -41,16 +41,31 @@ def test_the_most_telling_signal_leads():
                      ).headline == "RFS Watch and Act"
 
 
-def test_the_rest_go_on_one_line_with_busy_words_last():
+TOPIC = 'busy talk about "beau lamarre condon"'
+SAMPLE = 'ABC News: "Beau Lamarre-Condon found guilty"'
+
+
+def test_the_rest_go_on_one_line_busy_words_as_topics():
     lead = sig("convergence:1", headline="Gas leak, Sydney CBD")
-    terms = [sig(f"term:{w}") for w in ("lamarre condon", "lamarre", "condon", "guilty", "north")]
-    s = summarise([lead, lead, *terms, sig("aemo:lor2", title="Actual LOR2 in NSW")])  # lead twice: two categories
-    assert s.also == 'Actual LOR2 in NSW; busy words "lamarre condon", "lamarre", "condon" and 2 more'
+    court = [sig(f"term:{w}", headline=TOPIC, lines=(SAMPLE,)) for w in ("lamarre condon", "lamarre", "guilty")]
+    filler = [sig("term:north"), sig("term:making")]
+    s = summarise([lead, lead, *court, *filler, sig("aemo:lor2", title="Actual LOR2 in NSW")])  # lead in 2 categories
+    assert s.also == f"Actual LOR2 in NSW; {TOPIC} ({SAMPLE}); 2 other busy words"
+    assert summarise([lead, *filler]).also == 'busy words "north", "making"'  # no topics: name them
+
+
+def test_what_didnt_cause_the_level_is_not_linked():
+    lead = sig("convergence:1", headline="Gas leak, Sydney CBD")
+    court = [sig(f"term:{w}", headline=TOPIC, lines=(SAMPLE,)) for w in ("lamarre condon", "guilty")]
+    s = summarise([lead, *court, sig("term:north")], linked={"convergence:1"})
+    assert (s.headline, s.also, s.unlinked) == ("Gas leak, Sydney CBD", "", f"{TOPIC} ({SAMPLE}); 1 other busy word")
 
 
 def test_only_busy_words():
-    s = summarise([sig("term:lamarre condon"), sig("term:guilty")])
-    assert (s.headline, s.also) == ('Busy words "lamarre condon", "guilty"', "")
+    court = [sig(f"term:{w}", headline=TOPIC, lines=(SAMPLE,)) for w in ("lamarre condon", "guilty")]
+    s = summarise([*court, sig("term:north")])
+    assert (s.headline, s.lines, s.also) == ('Busy talk about "beau lamarre condon"', (SAMPLE,), 'busy words "north"')
+    assert summarise([sig("term:north"), sig("term:making")]).headline == 'Busy words "north", "making"'
 
 
 def test_nothing_raised_nothing_to_say():
@@ -76,14 +91,29 @@ class Post:
         self.at, self.title, self.place, self.alertable, self.notable = when, text, place, True, True
 
 
-def terms_view(*words):
-    signals = tuple(Signal(f"term:{w}", E, ("sydney",), title=f'"{w}" is busy: 14 mentions', headline=f'"{w}" is busy')
-                    for w in words)
-    reason = "; ".join(s.title for s in signals)
-    return SourceView(id="terms:social", name="Emerging terms", category=Category.SOCIAL, link=None, level=E,
-                      reason=reason, flags=frozenset(), details={}, last_known_level=E, last_known_reason=reason,
-                      observed_at=NOW, last_success_at=NOW, last_attempt_at=NOW, last_error=None, failures=0,
-                      signals=signals, derived=True)
+COURT = [("Guardian Australia", "Beau Lamarre-Condon found guilty of murdering Jesse Baird and Luke Davies"),
+         ("Sydney Morning Herald", "Lamarre-Condon found guilty of murdering Sydney couple")]
+
+
+def busy_words_that_day(db):
+    """The court case busy in headlines and posts, and an everyday word one account kept posting."""
+    from sitrep.config import TermsSettings
+    from sitrep.terms import Terms, blocklist_of, record
+    block = blocklist_of(TermsSettings())
+    for i, (outlet, title) in enumerate(COURT):
+        db.see_item("news", f"https://example.com/{i}", ts=at(12, 30), now=at(12, 30), fresh=True,
+                    source_type="mainstream", title=title, url=f"https://example.com/{i}",
+                    details={"outlet": outlet, "places": [], "lat": None, "lon": None, "sydney_wide": True})
+        record(db, title, at=at(12, 30), kind="news", who=outlet, fresh=True, blocklist=block)
+    chatter = [Post(f"beau lamarre-condon found guilty ({i})", "", at(12, 40)) for i in range(10)]
+    for i, p in enumerate(chatter):
+        record(db, p.title, at=p.at, kind="social", who=f"person{i}", fresh=True, blocklist=block)
+    for i in range(8):
+        record(db, "making", at=at(12, 45), kind="social", who=f"bot{i % 2}", fresh=True, blocklist=block)
+    db.kv_set("terms:first_seen", str(NOW - 8 * 86400))
+    terms = Terms(db, TermsSettings(), lambda: NOW, posts=lambda since: chatter)
+    terms.update(NOW)
+    return terms
 
 
 def test_the_gas_leak_on_25_november():
@@ -104,23 +134,29 @@ def test_the_gas_leak_on_25_november():
              ("b", Post("smell of gas all down elizabeth st", "Sydney", at(12, 57)))]
     engine = Convergence(db, ConvergenceSettings(), lambda: NOW, posts=lambda since: posts)
     engine.update(NOW)
-    views = engine.views(NOW) + [terms_view("lamarre condon", "lamarre", "condon", "guilty", "north")]
+    terms = busy_words_that_day(db)
+    views = engine.views(NOW) + terms.views(NOW)
     result, _ = score_overall(views, ScoringSettings())
     assert result.level is Overall.ELEVATED
     assert result.summary.headline == "Gas leak, Sydney CBD"
 
-    alert = AlertPolicy(AlertsSettings()).update(result.level, result.reason, NOW, drivers=result.drivers)
+    alert = AlertPolicy(AlertsSettings()).update(result.level, result.reason, NOW, drivers=result.drivers,
+                                                 summary=result.summary)
     text = format_alert(alert, AlertsSettings())
+    # The court case didn't cause it (busy talk about Sydney as a whole doesn't back up one
+    # CBD square), so it's on its own line, as one topic with its headline; "making" (one
+    # account, over and over) is only counted.
     assert text.splitlines() == [
         "⚠️ <b>Elevated: Gas leak, Sydney CBD</b>",
         "Gas leak on Elizabeth Street just past King Street (attending: Emergency services, Transport for NSW, "
         "Utility Company), since 10:15 am.",
         "Also nearby: 2 people posting about Sydney, Moore Park; aircraft MDIA28 (AS50) circling near "
         "Rushcutters Bay for 39 minutes.",
-        'Also raised: busy words "lamarre condon", "lamarre", "condon" and 2 more.',
+        'Not linked: busy talk about "lamarre condon found guilty" (Guardian Australia: "Beau Lamarre-Condon '
+        'found guilty of murdering Jesse Baird and Luke Davies"); 1 other busy word.',
         "Since 12:57 pm.",
     ]
-    assert "smell of gas" not in text and "moore park" not in text  # never a post's text
+    assert "smell of gas" not in text and "moore park" not in text and "(3)" not in text  # never a post's text
     db.close()
 
 

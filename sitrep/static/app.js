@@ -237,7 +237,8 @@ function renderOverall(overall) {
   // Lead with what's happening and where ("Gas leak, Sydney CBD") when there's something to say;
   // the category tiles below still give each category's reason.
   $("#overall-reason").textContent = sentence(overall.headline || overall.reason);
-  const detail = overall.headline ? [...(overall.lines || []), overall.also ? `Also raised: ${overall.also}` : ""] : [];
+  const detail = overall.headline ? [...(overall.lines || []), overall.also ? `Also: ${overall.also}` : "",
+    overall.unlinked ? `Not linked: ${overall.unlinked}` : ""] : [];
   $("#overall-detail").textContent = detail.filter(Boolean).map(sentence).join("\n");
   const meta = [];
   if (overall.level !== "unknown") {

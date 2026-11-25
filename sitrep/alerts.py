@@ -76,8 +76,6 @@ def _marked(level: Overall, key: str) -> str:
     return f"{level.value}:{key}"
 
 
-def _summary_of(level: Overall, drivers: tuple[Signal, ...]) -> Summary:
-    return summarise(drivers) if level in (Overall.ELEVATED, Overall.CRITICAL) else Summary()
 
 
 class AlertPolicy:
@@ -103,18 +101,22 @@ class AlertPolicy:
         self._candidates: dict[str, int] = {}
         self.summary_window: tuple[float, float] | None = restart_gap
         self.summary_restarted = restart_gap is not None
+        self._given: Summary | None = None  # scoring's, for this pass
 
     # --- The main entry point ---
 
     def update(
         self, level: Overall, reason: str, now: float, *, drivers: tuple[Signal, ...] = (),
         shown: Overall | None = None, shown_reason: str = "", shown_headline: str = "",
+        summary: Summary | None = None,
     ) -> Alert | None:
         """Feed the overall level alerts see (every scoring pass). Returns an alert to send, or None.
 
         drivers are the signals behind the level; shown is the dashboard's own level,
-        which also counts backlog.
+        which also counts backlog. summary is what to say about it (scoring's, which knows
+        which drivers caused the level); without one it's worked out from the drivers.
         """
+        self._given = summary
         if level == Overall.UNKNOWN:
             return None
         if level == Overall.OFFLINE:
@@ -150,7 +152,7 @@ class AlertPolicy:
             self.lowering_since = now
         if now - self.lowering_since < self.cfg.all_clear_after_minutes * 60:
             return None
-        summary = _summary_of(level, drivers)
+        summary = self._summary_of(level, drivers)
         alert = Alert("lowered", level, reason, now, self.told, self.told_at,
                       lowered_at=self.lowering_since, loud=False, summary=summary, told_headline=self.told_headline)
         self._tell(level, now, summary.headline)
@@ -160,7 +162,7 @@ class AlertPolicy:
 
     def _raise(self, level: Overall, reason: str, now: float, drivers: tuple[Signal, ...]) -> Alert | None:
         keys = {_marked(level, s.key) for s in drivers}
-        summary = _summary_of(level, drivers)
+        summary = self._summary_of(level, drivers)
         if keys and all(self._recent(k, now) for k in keys):
             self._tell(level, now, summary.headline)  # only events you've just been told about: say nothing
             self._note_critical(level, drivers)
@@ -198,7 +200,7 @@ class AlertPolicy:
         start, end = self.summary_window or (now, now)
         louder = self.told is None or RANK[level] > RANK[self.told]
         keys = {_marked(level, s.key) for s in drivers} if level in (Overall.ELEVATED, Overall.CRITICAL) else set()
-        summary = _summary_of(level, drivers)
+        summary = self._summary_of(level, drivers)
         alert = Alert(
             "summary", level, reason, now, self.told, self.told_at, offline=(start, end),
             restarted=self.summary_restarted, shown=shown, shown_reason=shown_reason or reason,
@@ -212,6 +214,11 @@ class AlertPolicy:
         return alert
 
     # --- Bookkeeping ---
+
+    def _summary_of(self, level: Overall, drivers: tuple[Signal, ...]) -> Summary:
+        if level not in (Overall.ELEVATED, Overall.CRITICAL):
+            return Summary()
+        return self._given if self._given is not None else summarise(drivers)
 
     def _sound(self, level: Overall) -> bool:
         return level == Overall.CRITICAL or (level == Overall.ELEVATED and self.cfg.elevated_makes_sound)
@@ -369,12 +376,13 @@ class Alerts:
     def update(
         self, level: Overall, reason: str, now: float, *, drivers: tuple[Signal, ...] = (),
         shown: Overall | None = None, shown_reason: str = "", shown_headline: str = "",
+        summary: Summary | None = None,
     ) -> Alert | None:
         if not self.notifiers:
             return None
         before = (self.policy.told, self.policy.told_at)
         alert = self.policy.update(level, reason, now, drivers=drivers, shown=shown, shown_reason=shown_reason,
-                                   shown_headline=shown_headline)
+                                   shown_headline=shown_headline, summary=summary)
         if (self.policy.told, self.policy.told_at) != before and self.policy.told is not None:
             self.db.kv_set(TOLD_KEY, json.dumps({"level": self.policy.told.value, "at": self.policy.told_at,
                                                  "headline": self.policy.told_headline}))
