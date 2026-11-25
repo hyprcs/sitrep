@@ -431,7 +431,7 @@ DETAILS.livetraffic = {
           h("th", { text: "Hazard" }), h("th", { text: "Where" }), h("th", { class: "num", text: "Away" }))),
         h("tbody", {}, ...near.map((z) => h("tr", {},
           h("td", {}, pill(z.major ? "watch" : "info", z.kind === "majorevent" ? "Event" : z.major ? "Major" : "Hazard", true)),
-          h("td", { text: [z.title, z.advice, z.updated ? `updated ${ago(z.updated)}` : ""].filter(Boolean).join(" · ") }),
+          h("td", { text: [z.title, z.location, z.advice, z.updated ? `updated ${ago(z.updated)}` : ""].filter(Boolean).join(" · ") }),
           h("td", { class: "num", text: `${Math.round(z.km)} km` }))))));
     } else {
       parts.push(h("p", { class: "muted", text: `No unplanned or major hazards within ${details.show_km} km of home.` }));

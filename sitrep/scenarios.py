@@ -155,7 +155,7 @@ SCENARIOS: tuple[Scenario, ...] = (
         (
             CALM,
             at(5, "Live Traffic: major crash on the M2", {}, items=(Item(
-                "livetraffic", "Live Traffic: Crash: M2 Motorway, Macquarie Park", 2, "watch",
+                "livetraffic", "Live Traffic: Crash (truck): M2 Motorway, Macquarie Park", 2, "watch",
                 placed(*M2, suburb="Macquarie Park", major=True)),)),
             at(12, "ABC: crash closes the M2", {}, items=(headline(
                 "ABC News", "Truck rollover crash closes M2 at Macquarie Park", *M2, place="Macquarie Park"),)),

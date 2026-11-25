@@ -70,10 +70,23 @@ class Hazard:
     road: str = ""
     suburb: str = ""
     advice: str = ""
+    what: str = ""  # as exactly as the feed says: "Gas leak", "Crash (truck, car)"
+    location: str = ""  # where on the road: "just past King Street"
+    attending: tuple[str, ...] = ()  # who's there: "Emergency services", "Utility Company"
 
     def happening(self, now: float) -> bool:
         """True for a planned hazard (an event, say) that is on now."""
         return (self.start is None or self.start <= now + 3600) and (self.end is None or now <= self.end)
+
+    @property
+    def detail(self) -> str:
+        """The exact spot, who's there and the advice, for the map."""
+        parts = [self.location[:1].upper() + self.location[1:]] if self.location else []
+        if self.attending:
+            parts.append("Attending: " + ", ".join(self.attending))
+        if self.advice:
+            parts.append(self.advice)
+        return ". ".join(parts)
 
 
 def _ms(value: Any) -> float | None:
@@ -102,8 +115,58 @@ def _point(geometry: Any) -> tuple[float, float] | None:
     return (lat, lon) if -90 <= lat <= 0 and 0 <= lon <= 180 else None
 
 
-def describe(category: str, road: str, suburb: str, fallback: str) -> str:
-    what = category.replace("  ", " ").strip().capitalize() or fallback
+# Main categories that say nothing once the feed says exactly what it is: "HAZARD" -> "Gas leak".
+GENERAL = {"HAZARD", "ADVERSE WEATHER"}
+
+
+def _plain(part: str) -> str:
+    """Lower-case the first letter of an ordinary word or phrase ("Truck" -> "truck"), but
+    not of a name or code ("Sydney Harbour Bridge", "Snowy 2.0", "OSOM")."""
+    part = part.strip()
+    rest = part[1:]
+    return part[:1].lower() + rest if rest and not any(c.isupper() or c.isdigit() for c in rest) else part
+
+
+def what_of(category: str, sub: str, display: str) -> str:
+    """What the hazard is, as exactly as the feed says. Its sub-category if it has one
+    ("Gas leak", "Truck, Car"), otherwise whatever its display name adds to its main
+    category ("EMERGENCY ROADWORK Road damage")."""
+    category = re.sub(r"\s+", " ", category).strip()
+    display = re.sub(r"\s+", " ", display).strip()
+    general = category.capitalize()
+    detail = sub
+    if not detail:
+        if display.upper().startswith(category.upper()):
+            detail = display[len(category):].strip(" -:")
+        else:
+            # A name of its own ("West Head Road Cyclist Race"), maybe after another
+            # category's label ("SPECIAL EVENT CLEARWAYS Sydney Trains trackwork").
+            detail = re.sub(r"^(?:[A-Z]{2,}\s+){2,}(?=\S*[a-z])", "", display)
+    detail = ", ".join(_plain(p) for p in detail.split(",") if p.strip())
+    if not detail or detail.lower() == category.lower():
+        return general or display
+    own = detail[:1].upper() + detail[1:]
+    if category.upper() in GENERAL or not category:
+        return own
+    if category.split()[-1].lower() in detail.lower().split():
+        return own  # "FIRE" + "Grass fire" -> "Grass fire"
+    return f"{general} ({detail})"
+
+
+def location_of(road: dict[str, Any]) -> str:
+    """Where on its road a hazard is: "just past King Street", "between Day Street and Brown Street"."""
+    cross, second = _text(road.get("crossStreet")), _text(road.get("secondLocation"))
+    qualifier = _text(road.get("locationQualifier")).lower()
+    if not cross:
+        return ""
+    if qualifier == "between" and second:
+        return f"between {cross} and {second}"
+    if qualifier in ("", "-", "between", "to"):
+        return cross
+    return f"{qualifier} {cross}"
+
+
+def describe(what: str, road: str, suburb: str) -> str:
     where = ", ".join(x for x in (road, suburb) if x)
     return f"{what}: {where}" if where else what
 
@@ -122,15 +185,21 @@ def parse(data: Any, kind: str) -> list[Hazard]:
         category = _text(props.get("mainCategory")) or kind.upper()
         point = _point(feature.get("geometry"))
         advice = "; ".join(a for a in (_text(props.get("adviceA")), _text(props.get("adviceB"))) if a)
+        sub = ", ".join(s for s in (_text(props.get("subCategoryA")), _text(props.get("subCategoryB"))) if s)
+        what = what_of(category, sub, _text(props.get("displayName")))
+        groups = props.get("attendingGroups")
+        attending = tuple(g for g in (_text(x) for x in groups) if g) if isinstance(groups, list) else ()
         hazards.append(Hazard(
             id=f"{kind}:{feature.get('id') or props.get('created')}",
             kind=kind, category=category,
-            title=describe(category, road, suburb, _text(props.get("displayName"))),
+            # The cross street stays out of the title: story clusters match titles word by
+            # word, and "King" or "Street" would tie unrelated headlines to it.
+            title=describe(what, road, suburb),
             lat=point[0] if point else None, lon=point[1] if point else None,
             created=_ms(props.get("created")), updated=_ms(props.get("lastUpdated")) or _ms(props.get("created")),
             major=props.get("isMajor") is True, planned=str(props.get("incidentKind", "")).lower() == "planned",
             start=_ms(props.get("start")), end=_ms(props.get("end")),
-            road=road, suburb=suburb, advice=advice,
+            road=road, suburb=suburb, advice=advice, what=what, location=location_of(first), attending=attending,
         ))
     return hazards
 
@@ -196,7 +265,7 @@ def assess(hazards: list[Hazard], home: tuple[float, float], bbox: list[float], 
              "label": "Major event" if p.hazard.kind == "majorevent" else ("Major hazard" if p.hazard.major
                                                                           else p.hazard.category.capitalize()),
              "mark": p.mark, "lat": p.hazard.lat, "lon": p.hazard.lon, "km": round(p.km, 1),
-             "at": p.hazard.updated, "detail": p.hazard.advice}
+             "at": p.hazard.updated, "detail": p.hazard.detail}
             for p in shown if p.in_area and p.km is not None
         ],
     }
@@ -283,11 +352,12 @@ class LiveTrafficAdapter(PollingAdapter):
                 h.id, h.updated, title=f"Live Traffic: {h.title}", level="watch" if h.major else "info", now=now,
                 details={"lat": h.lat, "lon": h.lon, "km": round(km, 1), "cell": list(cell_of(h.lat, h.lon)),
                          "category": h.category, "suburb": h.suburb, "road": h.road, "kind": h.kind,
-                         "major": h.major, "planned": h.planned},
+                         "major": h.major, "planned": h.planned, "what": h.what, "location": h.location,
+                         "attending": list(h.attending)},
             )
             if h.major and west <= h.lon <= east and south <= h.lat <= north:
                 self.ctx.db.add_event(
                     h.created or h.updated or now, self.id, self.category.value, "info", f"Live Traffic major hazard: {h.title}",
-                    url=self.link, details={"reason": f"{km:.0f} km away" + (f"; {h.advice}" if h.advice else "")},
+                    url=self.link, details={"reason": "; ".join([f"{km:.0f} km away", *filter(None, [h.detail])])},
                     dedupe_key=f"livetraffic:{h.id}",
                 )

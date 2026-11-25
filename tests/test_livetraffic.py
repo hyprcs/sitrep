@@ -69,8 +69,59 @@ def test_coordinates_in_either_order():
 
 def test_titles_say_what_and_where():
     (crash,) = [h for h in parse(crash_near_home(), "incident") if h.id == "incident:999001"]
-    assert crash.title == "Crash: M2 Motorway, Macquarie Park"
+    assert crash.title == "Crash (multi-vehicle): M2 Motorway, Macquarie Park"
     assert (crash.major, crash.planned, crash.advice) == (True, False, "Reduce speed; Expect delays")
+
+
+def gas_leak():
+    # The real gas leak in the CBD on 25 Nov 2026, from that day's feed.
+    found = parse(json.loads((FIXTURES / "incident_open_20261125.json").read_text(encoding="utf-8")), "incident")
+    (leak,) = [h for h in found if h.road == "Elizabeth Street"]
+    return leak
+
+
+def test_titles_say_exactly_what_the_feed_says_it_is():
+    leak = gas_leak()
+    assert (leak.category, leak.what) == ("HAZARD", "Gas leak")  # not just "Hazard"
+    assert leak.title == "Gas leak: Elizabeth Street, Sydney"
+    assert leak.location == "just past King Street"
+    assert leak.attending == ("Emergency services", "Transport for NSW", "Utility Company")
+    assert leak.detail == ("Just past King Street. Attending: Emergency services, Transport for NSW, Utility "
+                           "Company. Prepare to merge; Exercise caution")
+
+
+@pytest.mark.parametrize(("category", "sub", "display", "what"), [
+    ("CRASH", "Truck, Car", "CRASH Truck, Car", "Crash (truck, car)"),
+    ("BREAKDOWN", "Car towing caravan", "BREAKDOWN Car towing caravan", "Breakdown (car towing caravan)"),
+    ("ADVERSE WEATHER", "Water over road", "ADVERSE WEATHER Water over road", "Water over road"),
+    ("EMERGENCY ROADWORK", "null", "EMERGENCY ROADWORK Road damage", "Emergency roadwork (road damage)"),
+    ("FIRE", "Grass fire", "", "Grass fire"),
+    ("SPECIAL EVENT", "", "West Head Road Cyclist Race", "Special event (West Head Road Cyclist Race)"),
+    ("CHANGED TRAFFIC CONDITIONS", "", "SPECIAL EVENT CLEARWAYS Sydney Trains trackwork",
+     "Changed traffic conditions (Sydney Trains trackwork)"),
+    ("CHANGED TRAFFIC CONDITIONS", "", "CHANGED TRAFFIC CONDITIONS Snowy 2.0", "Changed traffic conditions (Snowy 2.0)"),
+    ("OPEN TO  4WD ONLY", "", "OPEN TO  4WD ONLY", "Open to 4wd only"),
+    ("HAZARD", "", "HAZARD", "Hazard"),  # when that's all the feed says
+])
+def test_what_a_hazard_is(category, sub, display, what):
+    from sitrep.adapters.livetraffic import _text, what_of
+    assert what_of(category, _text(sub), display) == what
+
+
+def test_where_on_the_road():
+    from sitrep.adapters.livetraffic import location_of
+    assert location_of({"locationQualifier": "near", "crossStreet": "Poveys Road"}) == "near Poveys Road"
+    assert location_of({"locationQualifier": "between", "crossStreet": "Day Street",
+                        "secondLocation": "Brown Street"}) == "between Day Street and Brown Street"
+    assert location_of({"locationQualifier": "-", "crossStreet": "just south of Gulgan Road overpass"}) == (
+        "just south of Gulgan Road overpass")
+    assert location_of({"locationQualifier": "at", "crossStreet": ""}) == ""
+
+
+def test_the_cross_street_stays_out_of_the_title():
+    # Story clusters match titles word by word: "King" and "Street" would tie unrelated headlines to it.
+    from sitrep.stories import words
+    assert words(gas_leak().title, ["Sydney"]) == {"gas", "leak", "elizabeth", "street"}
 
 
 def test_ended_hazards_are_dropped():
@@ -100,10 +151,10 @@ def test_a_major_crash_near_home_is_listed_and_mapped():
     found = parse(data, "incident") + parse(load("flood"), "flood")
     result = assess(found, HOME, BBOX, S, NOW)
     assert result.level == Level.NORMAL  # still: it only feeds the map and, later, clusters
-    assert "Nearest: Crash: M2 Motorway, Macquarie Park, 1 km" in result.reason
-    assert "Major: Crash: M2 Motorway, Macquarie Park" in result.reason
+    assert "Nearest: Crash (multi-vehicle): M2 Motorway, Macquarie Park, 1 km" in result.reason
+    assert "Major: Crash (multi-vehicle): M2 Motorway, Macquarie Park" in result.reason
     first = result.details["near"][0]
-    assert (first["title"], first["mark"]) == ("Crash: M2 Motorway, Macquarie Park", "watch")
+    assert (first["title"], first["mark"]) == ("Crash (multi-vehicle): M2 Motorway, Macquarie Park", "watch")
     point = next(p for p in result.details["map"] if p["id"] == "incident:999001")
     assert (point["kind"], point["label"], point["mark"]) == ("traffic", "Major hazard", "watch")
 
@@ -139,7 +190,8 @@ async def test_poll_reads_each_feed_with_the_token_and_events_less_often():
     assert first.details["sydney"] == second.details["sydney"]  # the events it already had still count
     item = db.query("SELECT level, details FROM items WHERE item_id = 'incident:999001'")[0]
     assert item["level"] == "watch" and json.loads(item["details"])["suburb"] == "Macquarie Park"
-    assert "Live Traffic major hazard: Crash: M2 Motorway, Macquarie Park" in [e["title"] for e in db.events_since(0)]
+    assert json.loads(item["details"])["what"] == "Crash (multi-vehicle)"  # for alerts to say what it is
+    assert "Live Traffic major hazard: Crash (multi-vehicle): M2 Motorway, Macquarie Park" in [e["title"] for e in db.events_since(0)]
     await http.aclose()
     db.close()
 
