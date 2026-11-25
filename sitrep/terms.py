@@ -227,7 +227,7 @@ class Terms:
         for category, found in by_category.items():
             signals = tuple(
                 Signal(f"term:{t.term}", Level.ELEVATED, (self._scope(t),), title=self._describe(t),
-                       alertable=alertable_only or self.alertable(t))
+                       alertable=alertable_only or self.alertable(t), headline=f'"{t.term}" is busy')
                 for t in found
             )
             reason = "; ".join(self._describe(t) for t in found)

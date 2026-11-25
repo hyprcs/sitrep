@@ -267,7 +267,8 @@ class RfsAdapter(PollingAdapter):
             i = p.incident
             alertable[i.id] = self.see_item(
                 i.id, i.updated, title=f"RFS {i.level}: {i.title}", level=p.mark, url=i.url, now=now,
-                details={"lat": i.lat, "lon": i.lon, "km": p.km, "level": i.level, "council": i.council},
+                details={"lat": i.lat, "lon": i.lon, "km": p.km, "level": i.level, "council": i.council,
+                         "kind": i.kind},
             ).alertable
         result = assess(incidents, home, loc.name, self.settings, now, alertable)
         self._add_to_timeline(incidents, home, now)

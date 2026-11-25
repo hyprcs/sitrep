@@ -23,6 +23,8 @@ from .models import Overall
 from .util import format_duration, sydney_clock
 
 MAX_REASON = 1500  # Telegram allows 4096 characters; a reason this long is plenty
+MAX_HEADLINE = 160
+MAX_LINE = 400
 
 # The same shapes as the dashboard's icons, so the level never relies on colour alone.
 HEADLINES = {
@@ -136,37 +138,59 @@ def _summary_lines(alert: Alert, when: Callable[[float], str]) -> list[str]:
     else:
         lines.append("Nothing new came in meanwhile.")
     shown = alert.shown or alert.level
-    reason = alert.shown_reason or alert.reason
+    reason = alert.shown_headline or alert.shown_reason or alert.reason
     lines.append(f"Now: {html.escape(sentence(_cut(reason)), quote=False)}")
     if shown != alert.level and RANKED.get(shown.value, 0) > RANKED.get(alert.level.value, 0):
         lines.append("That's from things that happened while sitrep couldn't send, so they didn't alert one by one.")
     return lines
 
 
+def _plain_text(text: str, limit: int = MAX_LINE) -> str:
+    text = text if len(text) <= limit else text[: limit - 1] + "…"
+    return html.escape(text, quote=False)
+
+
+def _what_lines(alert: Alert) -> list[str]:
+    """What's happening: the lines behind the headline and anything raised alongside it, or
+    the reason when there's no headline."""
+    s = alert.summary
+    if not s.headline:
+        return [html.escape(sentence(_cut(alert.reason)), quote=False)]
+    lines = [_plain_text(sentence(line)) for line in s.lines]
+    if s.also:
+        lines.append(_plain_text(sentence(f"Also raised: {s.also}")))
+    return lines
+
+
 def format_alert(alert: Alert, cfg: AlertsSettings, simulation: bool = False) -> str:
-    """The message text, in Telegram's HTML style (only <b> and <a> are used)."""
+    """The message text, in Telegram's HTML style (only <b> and <a> are used).
+
+    The first line says the level and, when there's something to say, what's happening and
+    where ("⚠️ Elevated: Gas leak, Sydney CBD"): it's what shows on a locked phone."""
     level = alert.shown if alert.kind == "summary" and alert.shown in HEADLINES else alert.level
     mark, label = HEADLINES[level]
-    reason = _cut(alert.reason)
+    headline = alert.shown_headline if alert.kind == "summary" else alert.summary.headline
     when = lambda ts: sydney_clock(ts, alert.at)  # noqa: E731
     lines = [SIMULATION_LINE] if simulation else []
-    if alert.kind == "another":
-        lines.append(f"{mark} <b>sitrep: {label}, another event</b>")
+    label += ", another event" if alert.kind == "another" else ""
+    if headline:
+        lines.append(f"{mark} <b>{label}: {_plain_text(headline, MAX_HEADLINE)}</b>")
     else:
         lines.append(f"{mark} <b>sitrep: {label}</b>")
 
     if alert.kind == "summary":
         lines += _summary_lines(alert, when)
     elif alert.kind == "another":
-        lines.append(html.escape(sentence(reason), quote=False))
+        lines += _what_lines(alert)
         if alert.told_at:
             lines.append(f"Still critical since {when(alert.told_at)}.")
     else:
-        lines.append(html.escape(sentence(reason), quote=False))
+        lines += _what_lines(alert)
         if alert.kind == "lowered" and alert.told in HEADLINES and alert.told_at:
             was = HEADLINES[alert.told][1]
+            what = f" ({_plain_text(alert.told_headline, MAX_HEADLINE)})" if alert.told_headline else ""
             until = f" until {when(alert.lowered_at)}" if alert.lowered_at else ""
-            lines.append(f"It was {was} from {when(alert.told_at)}{until}.")
+            lines.append(f"It was {was}{what} from {when(alert.told_at)}{until}.")
         elif alert.kind == "raised" and alert.told in (Overall.ELEVATED, Overall.CRITICAL) and alert.told_at:
             lines.append(f"Up from {HEADLINES[alert.told][1]} (since {when(alert.told_at)}).")
         if alert.kind == "raised":

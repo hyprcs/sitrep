@@ -147,12 +147,16 @@ class Signal:
     at: float | None = None  # the newest own timestamp behind it, if it has one
     emergency: bool = False  # an official emergency-level item (RFS Emergency Warning, LOR3, ...)
     keywords: tuple[str, ...] = ()  # keyword groups it matched
+    # What's happening and where, in a few words ("Gas leak, Sydney CBD"), and a few lines on
+    # what's behind it, for alerts to lead with (see summary.py). Empty: the title says it.
+    headline: str = ""
+    lines: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "key": self.key, "level": self.level.value, "scopes": list(self.scopes), "title": self.title,
             "alertable": self.alertable, "at": self.at, "emergency": self.emergency,
-            "keywords": list(self.keywords),
+            "keywords": list(self.keywords), "headline": self.headline, "lines": list(self.lines),
         }
 
     @classmethod
@@ -161,7 +165,8 @@ class Signal:
             key=str(raw["key"]), level=Level(raw["level"]), scopes=tuple(raw.get("scopes") or ()),
             title=str(raw.get("title") or ""), alertable=bool(raw.get("alertable", True)),
             at=raw.get("at"), emergency=bool(raw.get("emergency", False)),
-            keywords=tuple(raw.get("keywords") or ()),
+            keywords=tuple(raw.get("keywords") or ()), headline=str(raw.get("headline") or ""),
+            lines=tuple(raw.get("lines") or ()),
         )
 
 

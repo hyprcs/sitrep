@@ -24,6 +24,12 @@ its headlines and posts match one of the keyword groups. A crash with a news sto
 helicopter overhead is elevated, not critical. Unlike story clusters, a convergence
 doesn't need the events to share any words: a grass fire, a closed road and people
 posting about smoke in one suburb are enough.
+
+For alerts, a convergence's headline is the event that says most about what's happening,
+and where ("Gas leak, Sydney CBD"): an emergency-level item first, then a fire, a road
+hazard Live Traffic names ("Gas leak", not just "Hazard"), a headline, a train
+disruption, then the rest. The other kinds follow as "Also nearby": they're in the same
+place at the same time, which isn't proof they're about the same thing.
 """
 
 from __future__ import annotations
@@ -41,9 +47,19 @@ from .models import Assessment, Category, Level, Signal, area
 from .places import gazetteer
 from .state import SourceView
 from .stories import LOOKS_BACK
+from .util import sydney_clock
 
 KIND_LABELS = {"fire": "fire", "road": "road hazard", "trains": "train disruption", "news": "news",
                "social": "posts", "aircraft": "aircraft circling"}
+# Which event says most about what's happening, best first. A road hazard only says much
+# when Live Traffic names it ("road_named": "Gas leak", not just "Hazard").
+TELLING = ("fire", "road_named", "news", "trains", "road", "aircraft", "social")
+VAGUE_ROAD = {"", "hazard"}
+
+
+def _lower_first(text: str) -> str:
+    """"Gas leak" -> "gas leak", but not "MDIA28" or "M2"."""
+    return text[:1].lower() + text[1:] if text[1:2].islower() else text
 KIND_CATEGORY = {"fire": Category.OFFICIAL, "road": Category.OFFICIAL, "trains": Category.OFFICIAL,
                  "news": Category.NEWS, "social": Category.SOCIAL, "aircraft": Category.SENSORS}
 # Roughly Greater Sydney (the map's area). Only convergences inside it can become critical.
@@ -62,6 +78,16 @@ class Event:
     alertable: bool = True
     emergency: bool = False
     who: str = ""  # for posts: a one-way code for the author
+    what: str = ""  # what it is, in a few words: "Gas leak", "Grass fire", a headline
+    short: str = ""  # a phrase for the "Also nearby" line: "gas leak on Elizabeth Street"
+    full: str = ""  # a line for when it leads: where exactly, who's there
+    since: float | None = None  # when sitrep first saw it
+    outlet: str = ""  # for headlines
+
+    @property
+    def telling(self) -> int:
+        kind = "road_named" if self.kind == "road" and self.what.lower() not in VAGUE_ROAD else self.kind
+        return TELLING.index(kind)
 
 
 @dataclass
@@ -118,6 +144,43 @@ class Hotspot:
         kinds = ", ".join(KIND_LABELS[k] for k in sorted(self.kinds(s), key=list(KIND_LABELS).index))
         return f"Convergence at {self.where}: {kinds}"
 
+    def lead(self, s: ConvergenceSettings) -> Event:
+        """The event that says most about what's happening."""
+        counted = self.kinds(s)
+        events = [e for e in self.events if e.kind in counted and e.kind != "social"] or self.events
+        return min(events, key=lambda e: (not e.emergency, e.telling, -e.at))
+
+    def headline(self, s: ConvergenceSettings) -> str:
+        """What's happening and where: "Gas leak, Sydney CBD"."""
+        what = self.lead(s).what or KIND_LABELS[self.lead(s).kind].capitalize()
+        return what if self.where.lower() in what.lower() else f"{what}, {self.where}"
+
+    def lines(self, s: ConvergenceSettings, now: float) -> tuple[str, ...]:
+        """The leading event in full, then the other kinds of event as "Also nearby"."""
+        lead = self.lead(s)
+        if lead.kind == "news":  # the headline is already the first line
+            outlets = list(dict.fromkeys(e.outlet for e in self.events if e.kind == "news" and e.outlet))
+            first = f"Headline from {', '.join(outlets)}" if outlets else ""
+        elif lead.kind == "social":
+            first = ""  # never a post's text: it isn't kept once its author deletes it
+        else:
+            first = lead.full or lead.title
+            if lead.since is not None and lead.kind in ("fire", "road", "trains"):
+                first += f", since {sydney_clock(lead.since, now)}"
+        nearby = []
+        for kind in sorted(self.kinds(s), key=list(KIND_LABELS).index):
+            events = sorted((e for e in self.events if e.kind == kind and e is not lead), key=lambda e: -e.at)
+            if kind == lead.kind == "news" or not events:
+                continue
+            if kind == "social":
+                people = len({e.who for e in self.events if e.kind == "social"})
+                places = ", ".join(dict.fromkeys(e.place for e in events if e.place))
+                nearby.append(f"{people} people posting" + (f" about {places}" if places else ""))
+                continue
+            phrase = events[0].short or _lower_first(events[0].title)
+            nearby.append(phrase + (f" (and {len(events) - 1} more)" if len(events) > 1 else ""))
+        return tuple(x for x in (first, "Also nearby: " + "; ".join(nearby) if nearby else "") if x)
+
 
 def nearest_place(lat: float, lon: float) -> str:
     return gazetteer().nearest(lat, lon).name
@@ -145,29 +208,54 @@ def find_hotspots(events: list[Event], s: ConvergenceSettings) -> list[Hotspot]:
     return hotspots
 
 
+def _fire(title: str, d: dict[str, Any]) -> dict[str, str]:
+    """"RFS Advice: NORTH ARM RD, MURWILLUMBAH" -> "Grass fire at North Arm Rd, Murwillumbah (RFS Advice)"."""
+    name = title.split(": ", 1)[1] if title.startswith("RFS ") and ": " in title else title
+    name = name.title() if name.isupper() else name
+    what = (d.get("kind") or "Fire").capitalize()
+    level = f" (RFS {d['level']})" if d.get("level") else ""
+    return {"what": what, "short": f"{_lower_first(what)} at {name}{level}", "full": f"{what} at {name}{level}"}
+
+
+def _road(title: str, d: dict[str, Any]) -> dict[str, str]:
+    """"Gas leak on Elizabeth Street just past King Street (attending: Emergency services, ...)"."""
+    what = d.get("what") or title.removeprefix("Live Traffic: ").split(":")[0]  # saved before "what" was
+    road = d.get("road") or ""
+    on = f" on {road}" if road else ""
+    full = f"{what}{on}" + (f" {d['location']}" if road and d.get("location") else "")
+    if d.get("attending"):
+        full += f" (attending: {', '.join(d['attending'])})"
+    return {"what": what, "short": f"{_lower_first(what)}{on}", "full": full}
+
+
 def _events_from_items(rows: list[dict[str, Any]], s: ConvergenceSettings) -> list[Event]:
     places = gazetteer()
     events = []
     for row in rows:
-        d, source = row["details"], row["source_id"]
+        d, source, title = row["details"], row["source_id"], row["title"]
         at = row["ts"] or row["version_seen"]
-        common = {"at": at, "title": row["title"], "alertable": bool(row["alertable"])}
+        common = {"at": at, "title": title, "alertable": bool(row["alertable"]), "since": row.get("first_seen")}
         if source == "rfs" and d.get("lat") is not None and d.get("level") != "Planned burn":
             events.append(Event("fire", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"],
-                                emergency=d.get("level") == "Emergency Warning", **common))
+                                emergency=d.get("level") == "Emergency Warning", **_fire(title, d), **common))
         elif source == "livetraffic" and d.get("lat") is not None and d.get("kind") != "majorevent" and (
                 not d.get("planned") or d.get("major")):
             events.append(Event("road", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"], place=d.get("suburb"),
-                                **common))
+                                **_road(title, d), **common))
         elif source == "transit":
-            for p in places.find(row["title"], nsw_feed=True):
+            for p in places.find(title, nsw_feed=True):
                 if p.sydney:
-                    events.append(Event("trains", cell_of(p.lat, p.lon), p.lat, p.lon, place=p.name, **common))
-        elif source == "news" and d.get("lat") is not None and not LOOKS_BACK.search(row["title"]):
+                    events.append(Event("trains", cell_of(p.lat, p.lon), p.lat, p.lon, place=p.name,
+                                        what="Train disruption", **common))
+        elif source == "news" and d.get("lat") is not None and not LOOKS_BACK.search(title):
             place = next((p for p in d.get("places") or [] if (g := places.get(p)) and g.sydney), None)
-            events.append(Event("news", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"], place=place, **common))
+            outlet = d.get("outlet") or ""
+            events.append(Event("news", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"], place=place, what=title,
+                                short=f'"{title}"' + (f" ({outlet})" if outlet else ""), outlet=outlet, **common))
         elif source == "adsb" and d.get("lat") is not None and d.get("orbit"):
-            events.append(Event("aircraft", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"], **common))
+            what = "Helicopter circling" if d.get("helicopter") else "Aircraft circling"
+            events.append(Event("aircraft", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"], what=what,
+                                short=_lower_first(title), **common))
         elif source == "bluesky" and d.get("lat") is not None:  # simulated posts arrive as items
             events.append(Event("social", cell_of(d["lat"], d["lon"]), d["lat"], d["lon"], who=row["item_id"],
                                 **common))
@@ -194,7 +282,7 @@ class Convergence:
         now = self.clock() if now is None else now
         since = now - self.s.window_hours * 3600
         rows = self.db.query(
-            """SELECT source_id, item_id, ts, version_seen, alertable, title, details FROM items
+            """SELECT source_id, item_id, ts, first_seen, version_seen, alertable, title, details FROM items
                WHERE source_id IN ('rfs', 'livetraffic', 'transit', 'news', 'adsb', 'bluesky')
                  AND COALESCE(ts, version_seen) >= ?""",
             (since,),
@@ -229,7 +317,8 @@ class Convergence:
             signals = tuple(
                 Signal(h.key, lv, (area(*h.centre),), title=h.describe(self.s),
                        alertable=alertable_only or h.level(self.s, True) is not Level.NORMAL,
-                       emergency=any(e.emergency for e in h.events), keywords=h.keywords)
+                       emergency=any(e.emergency for e in h.events), keywords=h.keywords,
+                       headline=h.headline(self.s), lines=h.lines(self.s, now))
                 for h, lv in found
             )
             reason = "; ".join(h.describe(self.s) for h, _ in found)
@@ -254,7 +343,7 @@ class Convergence:
         details = {
             "window_hours": self.s.window_hours,
             "hotspots": [
-                {"key": h.key, "where": h.where, "level": h.level(self.s).value,
+                {"key": h.key, "where": h.where, "headline": h.headline(self.s), "level": h.level(self.s).value,
                  "kinds": sorted(h.kinds(self.s), key=list(KIND_LABELS).index), "keywords": list(h.keywords),
                  "events": [{"kind": e.kind, "title": e.title if e.kind != "social" else "A Bluesky post",
                              "at": e.at, "place": e.place} for e in h.events[:12]],

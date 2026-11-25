@@ -178,11 +178,12 @@ SCENARIOS: tuple[Scenario, ...] = (
         (
             CALM,
             at(5, "RFS: grass fire (Advice)", {}, items=(Item(
-                "rfs", "RFS Advice: GRASS FIRE, OLD WINDSOR RD, KELLYVILLE", 3, "info",
-                placed(*KELLYVILLE, level="Advice")),)),
+                "rfs", "RFS Advice: OLD WINDSOR RD, KELLYVILLE", 3, "info",
+                placed(*KELLYVILLE, level="Advice", kind="Grass Fire")),)),
             at(8, "Live Traffic: hazard on Old Windsor Road", {}, items=(Item(
                 "livetraffic", "Live Traffic: Hazard: Old Windsor Road, Kellyville", 2, "info",
-                placed(*KELLYVILLE, suburb="Kellyville", kind="incident", planned=False, major=False)),)),
+                placed(*KELLYVILLE, suburb="Kellyville", road="Old Windsor Road", kind="incident", planned=False,
+                       major=False)),)),
             at(12, "Bluesky: someone posts about smoke", {}, items=(post(
                 "huge smoke cloud over Kellyville, anyone know what's going on?", *KELLYVILLE),)),
             at(14, "Bluesky: someone else does too", {}, items=(post(
@@ -598,7 +599,10 @@ def describe(outcome: Outcome) -> str:
         what = LEVEL_WORDS[alert.shown or alert.level] if alert.kind == "summary" else LEVEL_WORDS[alert.level]
         sound = "with a sound" if alert.loud else "silent"
         head = f"{what}{', ' + kind if kind else ''}"
-        reason = alert.shown_reason if alert.kind == "summary" else alert.reason
+        if alert.kind == "summary":
+            reason = alert.shown_headline or alert.shown_reason
+        else:
+            reason = alert.summary.headline or alert.reason
         lines.append(f"  Message {_when(alert.at - outcome.start)}: {head} ({sound}). {reason[:160]}")
         if alert.kind == "summary" and alert.items:
             counts = ", ".join(f"{n} from {name}" for name, n in alert.items.get("counts", {}).items())

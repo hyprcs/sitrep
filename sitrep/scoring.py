@@ -38,6 +38,7 @@ from .models import (
     is_live,
 )
 from .state import SourceView
+from .summary import Summary, summarise
 
 
 @dataclass(frozen=True)
@@ -55,6 +56,11 @@ class OverallResult:
     level: Overall
     reason: str
     drivers: tuple[Signal, ...] = ()  # the signals behind the level
+
+    @property
+    def summary(self) -> Summary:
+        """What's happening and where, in a few words (see summary.py)."""
+        return summarise(self.drivers) if self.level in (Overall.ELEVATED, Overall.CRITICAL) else Summary()
 
 
 def describe(view: SourceView) -> str:

@@ -258,6 +258,8 @@ body.disconnected .page { opacity: 0.6; filter: saturate(0.4); }
 }
 .hero.lvl-critical .hero-label, .hero.lvl-offline .hero-label { color: var(--lvl); }
 .hero-reason { margin-top: 24px; max-width: 36ch; color: var(--ink-2); font-size: clamp(17px, 2.2vw, 21px); line-height: 1.45; letter-spacing: -0.01em; }
+.hero-detail { margin-top: 12px; max-width: 60ch; color: var(--muted); font-size: 14.5px; line-height: 1.5; white-space: pre-line; }
+.hero-detail:empty { display: none; }
 .hero-meta { margin-top: 20px; color: var(--muted); font: 12.5px var(--mono); }
 .hero-meta:empty { display: none; }
 .hero-warn { margin-top: 10px; color: var(--warning); font-size: 13px; font-weight: 600; }

@@ -234,7 +234,11 @@ function renderOverall(overall) {
   }
   $("#brand-mark").className = `brand-mark lvl-${overall.level}`;
   $("#overall-label").textContent = info.label;
-  $("#overall-reason").textContent = sentence(overall.reason);
+  // Lead with what's happening and where ("Gas leak, Sydney CBD") when there's something to say;
+  // the category tiles below still give each category's reason.
+  $("#overall-reason").textContent = sentence(overall.headline || overall.reason);
+  const detail = overall.headline ? [...(overall.lines || []), overall.also ? `Also raised: ${overall.also}` : ""] : [];
+  $("#overall-detail").textContent = detail.filter(Boolean).map(sentence).join("\n");
   const meta = [];
   if (overall.level !== "unknown") {
     meta.push(`Since ${clockTime(overall.since)} (${duration(nowSeconds() - overall.since)})`);

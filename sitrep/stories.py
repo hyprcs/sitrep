@@ -285,6 +285,30 @@ class Story:
         kinds = " + ".join(TYPE_WORDS[t] for t in TYPES if t in self.kinds())
         return f"Story in {self.where} ({kinds}): {self.title}"
 
+    @property
+    def headline(self) -> str:
+        """For alerts to lead with: its title, and where if the title doesn't say."""
+        title = self.title.removeprefix("Live Traffic: ")
+        if self.where in ("Sydney", "Greater Sydney") or self.where.lower() in title.lower():
+            return title
+        return f"{title}, {self.where}"
+
+    def lines(self) -> tuple[str, ...]:
+        """Who's reporting it: the outlets, official items, and how many posts."""
+        counted = [m for m in self.members if m.notable and not self.old_news(m)]
+        outlets = list(dict.fromkeys(m.outlet or m.source_name for m in counted if m.source_type == "mainstream"))
+        official = [t for t in dict.fromkeys(m.title for m in counted if m.source_type == "official")
+                    if t != self.title]
+        posts = sum(1 for m in counted if m.source_type == "social")
+        found = []
+        if outlets:
+            more = f" and {len(outlets) - 3} more" if len(outlets) > 3 else ""
+            found.append(f"Headlines from {', '.join(outlets[:3])}{more}")
+        found += official[:2]
+        if posts:
+            found.append(f"{posts} post{'' if posts == 1 else 's'} on Bluesky")
+        return tuple(found)
+
 
 def same_place(a: Member, b: Member) -> bool:
     """The same suburb, the same or a neighbouring 2 km square, or both about Sydney as a whole."""
@@ -450,7 +474,8 @@ class Stories:
             worst = Level.CRITICAL if any(lv is Level.CRITICAL for _, lv in found) else Level.ELEVATED
             signals = tuple(
                 Signal(f"cluster:{s.id}", lv, s.scopes(), title=s.describe(), alertable=alertable_only or self._fresh(s),
-                       emergency=any(m.emergency for m in s.members), keywords=s.keywords)
+                       emergency=any(m.emergency for m in s.members), keywords=s.keywords,
+                       headline=s.headline, lines=s.lines())
                 for s, lv in found
             )
             reason = "; ".join(s.describe() for s, _ in found)

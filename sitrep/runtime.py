@@ -208,9 +208,10 @@ class Runtime:
             current = self.tracker.current
             self.db.add_overall(now, current.level.value, current.reason)
             if previous != Overall.UNKNOWN or current.level != Overall.NORMAL:
+                headline = current.summary.headline
                 self.db.add_event(
                     now, "overall", "overall", current.level.value,
-                    f"Overall: {current.level.value}",
+                    f"Overall: {current.level.value}" + (f": {headline}" if headline else ""),
                     details={"reason": current.reason, "from": previous.value},
                 )
             log.info("Overall level is now %s: %s", current.level.value, current.reason)
@@ -221,7 +222,7 @@ class Runtime:
         self.alert_tracker.update(alerting, now)
         seen, shown = self.alert_tracker.current, self.tracker.current
         self.alerts.update(seen.level, seen.reason, now, drivers=seen.drivers,
-                           shown=shown.level, shown_reason=shown.reason)
+                           shown=shown.level, shown_reason=shown.reason, shown_headline=shown.summary.headline)
         self.db.kv_set(HEARTBEAT_KEY, str(now))
 
     def _derived(self, now: float, alertable_only: bool = False) -> list[SourceView]:
@@ -292,6 +293,9 @@ class Runtime:
             "overall": {
                 "level": tracker.current.level.value,
                 "reason": tracker.current.reason,
+                "headline": tracker.current.summary.headline,
+                "lines": list(tracker.current.summary.lines),
+                "also": tracker.current.summary.also,
                 "since": tracker.since,
                 "easing": easing,
             },
